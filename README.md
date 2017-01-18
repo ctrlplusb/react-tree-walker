@@ -15,9 +15,9 @@ Walk a React element tree, executing a provided visitor function against each el
 
 ## Introduction
 
-This is a port/generalisation of the implementation within the awesome [`react-apollo`](https://github.com/apollostack/react-apollo) project. I've come to find many use-cases in my own projects and want to avoid code duplication.
+This is a extract of the implementation within the awesome [`react-apollo`](https://github.com/apollostack/react-apollo) project. I've come to find many use-cases for it in my own projects and want to avoid code duplication.
 
-It's quite useful for performing pre-rendering parses on your React element tree to do things like data prefetching.
+With this you could, for example, perform pre-rendering parses on your React element tree to do things like data prefetching. 🤛
 
 # Example
 

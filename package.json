@@ -1,6 +1,6 @@
 {
   "name": "react-tree-walker",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Walk a React element tree, executing a provided function against each node.",
   "license": "MIT",
   "main": "commonjs/index.js",
