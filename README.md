@@ -79,7 +79,7 @@ function visitor(element, instance, context) {
   }
 };
 
-reactTreeWalker(tree, visitor);
+reactTreeWalker(app, visitor);
 
 console.log(values); // [1, 2, 4, 5, 3];
 ```
