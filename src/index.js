@@ -1,98 +1,115 @@
-/* @flow */
-// Extracted from: https://github.com/apollostack/react-apollo/blob/master/src/server.ts
+// Inspired by the awesome work done by the Apollo team.
+// See https://github.com/apollostack/react-apollo/blob/master/src/server.ts
+// This version has been adapted to be promise based.
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Children, Element } from 'react';
+import { Children } from 'react';
+import pMapSeries from 'p-map-series';
 
-type React$Element = Element<*>;
-type Context = { [key: string]: any; };
-type ElementVisitor =
-  (element: React$Element, instance: ?Function, context: Context) => boolean | void;
-
-export const isPromise = (x : any) => typeof x === 'object' && typeof x.then === 'function';
+export const isPromise = x => x != null && typeof x.then === 'function';
 
 // Recurse an React Element tree, running visitor on each element.
 // If visitor returns `false`, don't call the element's render function
 //   or recurse into its child elements
-export default function reactTreeWalker(
-  element: React$Element,
-  visitor: ElementVisitor,
-  context: Context = {},
-) {
-  // Is this element a Component?
-  if (typeof element.type === 'function') {
-    const Component = element.type;
-    const props = Object.assign({}, Component.defaultProps, element.props);
-    let childContext = context;
-    let child;
+export default function reactTreeWalker(element, visitor, context) {
+  return new Promise((resolve) => {
+    const handleVisitResult = (getChild, visitorResult, childContext, isChildren) => {
+      const tryContinue = () => {
+        // Returned true, indicating a desire to continue traversal immediately.
+        const child = getChild();
 
-    // Is this a class component? (http://bit.ly/2j9Ifk3)
-    const isReactClassComponent = Component.prototype &&
-      (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
-
-    if (isReactClassComponent) {
-      const instance = new Component(props, context);
-      // In case the user doesn't pass these to super in the constructor
-      instance.props = instance.props || props;
-      instance.context = instance.context || context;
-
-      // Make the setState synchronous.
-      instance.setState = (newState) => {
-        instance.state = Object.assign({}, instance.state, newState);
+        if (child == null) {
+          resolve();
+        } else if (isChildren) {
+          const mapper = aChild => (
+            aChild
+              ? reactTreeWalker(aChild, visitor, childContext)
+              : undefined
+          );
+          pMapSeries(Children.map(child, cur => cur), mapper).then(resolve);
+        } else {
+          reactTreeWalker(child, visitor, childContext).then(resolve);
+        }
       };
 
-      // Call componentWillMount if it exists.
-      if (instance.componentWillMount) {
-        instance.componentWillMount();
-      }
-
-      // Ensure the child context is initialised if it is available. We will
-      // need to pass it down the tree.
-      if (instance.getChildContext) {
-        childContext = Object.assign({}, context, instance.getChildContext());
-      }
-
-      // Hit up our visitor!
-      if (visitor(element, instance, context) === false) {
+      if (visitorResult === false) {
         // Visitor returned false, indicating a desire to not traverse.
-        return;
+        resolve();
+      } else if (isPromise(visitorResult)) {
+        visitorResult.then(tryContinue);
+      } else {
+        tryContinue();
       }
+    };
 
-      // Get the render output as the child.
-      child = instance.render();
+    // Is this element a Component?
+    if (typeof element.type === 'function') {
+      const Component = element.type;
+      const props = Object.assign({}, Component.defaultProps, element.props);
+      let childContext = context;
+
+      // Is this a class component? (http://bit.ly/2j9Ifk3)
+      const isReactClassComponent = Component.prototype &&
+        (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
+
+      if (isReactClassComponent) {
+        const instanceFactory = () => {
+          const instance = new Component(props, context);
+          // In case the user doesn't pass these to super in the constructor
+          instance.props = instance.props || props;
+          instance.context = instance.context || context;
+
+          // Make the setState synchronous.
+          instance.setState = (newState) => {
+            instance.state = Object.assign({}, instance.state, newState);
+          };
+
+          // Call componentWillMount if it exists.
+          if (instance.componentWillMount) {
+            instance.componentWillMount();
+          }
+
+          // Ensure the child context is initialised if it is available. We will
+          // need to pass it down the tree.
+          if (instance.getChildContext) {
+            childContext = Object.assign({}, context, instance.getChildContext());
+          }
+
+          return instance;
+        };
+
+        const instance = instanceFactory();
+
+        // Hit up our visitor!
+        handleVisitResult(
+          () => instance.render(),
+          visitor(element, instance, context),
+          childContext,
+        );
+      } else {
+        // Stateless Functional Component
+
+        // Hit up our visitor!
+        handleVisitResult(
+          () => Component(props, context),
+          visitor(element, null, context),
+          context,
+        );
+      }
     } else {
-      // Stateless Functional Component
+      // This must be a basic element, such as a string or dom node.
 
       // Hit up our visitor!
-      if (visitor(element, null, context) === false) {
-        // Visitor returned false, indicating a desire to not traverse.
-        return;
-      }
-
-      // Get the output for the function, as the child.
-      child = Component(props, context);
+      handleVisitResult(
+        () => (
+          element.props && element.props.children
+            ? element.props.children
+            : undefined
+        ),
+        visitor(element, null, context),
+        context,
+        true,
+      );
     }
-
-    // Only continue walking if a child exists.
-    if (child) {
-      reactTreeWalker(child, visitor, childContext);
-    }
-  } else {
-    // This must be a basic element, such as a string or dom node.
-
-    // Hit up our visitor!
-    if (visitor(element, null, context) === false) {
-      // Visitor returned false, indicating a desire to not traverse.
-      return;
-    }
-
-    // If the element has children then we will walk them.
-    if (element.props && element.props.children) {
-      Children.forEach(element.props.children, (child: any) => {
-        if (child) {
-          reactTreeWalker(child, visitor, context);
-        }
-      });
-    }
-  }
+  });
 }

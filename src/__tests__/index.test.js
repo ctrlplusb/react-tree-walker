@@ -1,4 +1,3 @@
-/* @flow */
 /* eslint-disable react/sort-comp */
 /* eslint-disable react/no-multi-comp */
 /* eslint-disable react/prop-types */
@@ -12,8 +11,6 @@ const Bob = ({ children }) => <div>{children}</div>;
 
 describe('reactTreeWalker', () => {
   class Foo extends Component {
-    props: { children?: any, something: any }
-
     constructor(props) {
       super(props);
       // $FlowIgnore
@@ -53,56 +50,36 @@ describe('reactTreeWalker', () => {
     </div>
   );
 
-  it('simple sync', () => {
+  it('simple sync visitor', () => {
     const tree = createTree(false);
     const actual = [];
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => {
-      if (instance && typeof instance.getSomething) {
+      if (instance && typeof instance.getSomething === 'function') {
         const something = instance.getSomething();
         actual.push(something);
       }
     };
-    reactTreeWalker(tree, visitor);
-    const expected = [1, 2, 4, 5, 3];
-    expect(actual).toEqual(expected);
+    return reactTreeWalker(tree, visitor).then(() => {
+      const expected = [1, 2, 4, 5, 3];
+      expect(actual).toEqual(expected);
+    });
   });
 
-  it('complex async', () => {
-    const treeRoot = createTree(true);
+  it('promise based visitor', () => {
+    const tree = createTree(true);
     const actual = [];
-
-    const doWalk = (el, ctx = {}, fetchRoot = false) => {
-      const somethings = [];
-
-      // eslint-disable-next-line no-unused-vars
-      const visitor = (element, instance, context) => {
-        const skipRoot = !fetchRoot && (element === el);
-        if (instance && typeof instance.getSomething === 'function' && !skipRoot) {
-          const something = instance.getSomething();
-          somethings.push({ something, element, context });
-          return false;
-        }
-        return undefined;
-      };
-
-      reactTreeWalker(el, visitor, ctx);
-
-      // eslint-disable-next-line arrow-body-style
-      const promises = somethings.map(({ something, element, context }) => {
-        return something.then((result) => {
-          actual.push(result);
-          return doWalk(element, context);
+    // eslint-disable-next-line no-unused-vars
+    const visitor = (element, instance, context) => {
+      if (instance && typeof instance.getSomething === 'function') {
+        return instance.getSomething().then((something) => {
+          actual.push(something);
         });
-      });
-
-      return promises.length > 0
-        ? Promise.all(promises)
-        : Promise.resolve([]);
+      }
+      return true;
     };
-
-    return doWalk(treeRoot, {}, true).then(() => {
-      const expected = [1, 2, 3, 4, 5];
+    return reactTreeWalker(tree, visitor).then(() => {
+      const expected = [1, 2, 4, 5, 3];
       expect(actual).toEqual(expected);
     });
   });
@@ -137,9 +114,10 @@ describe('reactTreeWalker', () => {
         actual = instance.getState();
       }
     };
-    reactTreeWalker(tree, visitor);
-    const expected = { foo: 'bar' };
-    expect(actual).toMatchObject(expected);
+    return reactTreeWalker(tree, visitor).then(() => {
+      const expected = { foo: 'bar' };
+      expect(actual).toMatchObject(expected);
+    });
   });
 
   it('getChildContext', () => {
@@ -163,9 +141,9 @@ describe('reactTreeWalker', () => {
     const tree = <Baz><Qux /></Baz>;
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => undefined;
-    reactTreeWalker(tree, visitor);
-
-    const expected = { foo: 'bar' };
-    expect(actual).toMatchObject(expected);
+    return reactTreeWalker(tree, visitor).then(() => {
+      const expected = { foo: 'bar' };
+      expect(actual).toMatchObject(expected);
+    });
   });
 });

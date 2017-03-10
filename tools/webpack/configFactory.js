@@ -3,14 +3,14 @@
 import { resolve as resolvePath } from 'path';
 import webpack from 'webpack';
 import appRootDir from 'app-root-dir';
-import { getPackageJson, removeEmpty, ifElse } from '../utils';
+import { removeEmpty, ifElse } from '../utils';
 
 type Args = {
   target: 'umd'|'umd-min',
 };
 
 function webpackConfigFactory({ target } : Args) {
-  const libraryName = getPackageJson().name;
+  const libraryName = 'react-tree-walker';
   const minimize = target === 'umd-min';
 
   return {
@@ -22,7 +22,7 @@ function webpackConfigFactory({ target } : Args) {
       filename: target === 'umd'
         ? `${libraryName}.js`
         : `${libraryName}.min.js`,
-      library: libraryName,
+      library: 'ReactTreeWalker',
       libraryTarget: 'umd',
     },
     externals: {
@@ -69,7 +69,13 @@ function webpackConfigFactory({ target } : Args) {
         {
           test: /\.js$/,
           loader: 'babel-loader',
-          include: [resolvePath(appRootDir.get(), './src')],
+          include: [
+            resolvePath(appRootDir.get(), './src'),
+            resolvePath(appRootDir.get(), './node_modules/p-limit'),
+            resolvePath(appRootDir.get(), './node_modules/p-locate'),
+            resolvePath(appRootDir.get(), './node_modules/p-map-series'),
+            resolvePath(appRootDir.get(), './node_modules/p-reduce'),
+          ],
         },
       ],
     },
