@@ -1,15 +1,9 @@
-/* @flow */
-
 import { resolve as resolvePath } from 'path';
 import webpack from 'webpack';
 import appRootDir from 'app-root-dir';
 import { removeEmpty, ifElse } from '../utils';
 
-type Args = {
-  target: 'umd'|'umd-min',
-};
-
-function webpackConfigFactory({ target } : Args) {
+function webpackConfigFactory({ target }) {
   const libraryName = 'react-tree-walker';
   const minimize = target === 'umd-min';
 
@@ -19,9 +13,7 @@ function webpackConfigFactory({ target } : Args) {
     },
     output: {
       path: resolvePath(appRootDir.get(), './umd'),
-      filename: target === 'umd'
-        ? `${libraryName}.js`
-        : `${libraryName}.min.js`,
+      filename: target === 'umd' ? `${libraryName}.js` : `${libraryName}.min.js`,
       library: 'ReactTreeWalker',
       libraryTarget: 'umd',
     },

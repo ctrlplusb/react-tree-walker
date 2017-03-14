@@ -21,11 +21,8 @@ export default function reactTreeWalker(element, visitor, context) {
         if (child == null) {
           resolve();
         } else if (isChildren) {
-          const mapper = aChild => (
-            aChild
-              ? reactTreeWalker(aChild, visitor, childContext)
-              : undefined
-          );
+          const mapper = aChild =>
+            aChild ? reactTreeWalker(aChild, visitor, childContext) : undefined;
           pMapSeries(Children.map(child, cur => cur), mapper).then(resolve);
         } else {
           reactTreeWalker(child, visitor, childContext).then(resolve);
@@ -101,11 +98,7 @@ export default function reactTreeWalker(element, visitor, context) {
 
       // Hit up our visitor!
       handleVisitResult(
-        () => (
-          element.props && element.props.children
-            ? element.props.children
-            : undefined
-        ),
+        () => element.props && element.props.children ? element.props.children : undefined,
         visitor(element, null, context),
         context,
         true,

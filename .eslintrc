@@ -12,6 +12,8 @@
     "defaultParams": true
   },
   "rules": {
+    "no-confusing-arrow": 0,
+
     "react/jsx-filename-extension": 0
   }
 }
