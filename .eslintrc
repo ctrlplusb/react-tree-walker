@@ -14,6 +14,9 @@
   "rules": {
     "no-confusing-arrow": 0,
 
+    // Going hipster
+    "semi": [2, "never"],
+
     "react/jsx-filename-extension": 0
   }
 }
