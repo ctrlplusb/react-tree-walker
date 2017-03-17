@@ -1,11 +1,11 @@
-import { resolve as resolvePath } from 'path';
-import webpack from 'webpack';
-import appRootDir from 'app-root-dir';
-import { removeEmpty, ifElse } from '../utils';
+import { resolve as resolvePath } from 'path'
+import webpack from 'webpack'
+import appRootDir from 'app-root-dir'
+import { removeEmpty, ifElse } from '../utils'
 
 function webpackConfigFactory({ target }) {
-  const libraryName = 'react-tree-walker';
-  const minimize = target === 'umd-min';
+  const libraryName = 'react-tree-walker'
+  const minimize = target === 'umd-min'
 
   return {
     entry: {
@@ -61,17 +61,11 @@ function webpackConfigFactory({ target }) {
         {
           test: /\.js$/,
           loader: 'babel-loader',
-          include: [
-            resolvePath(appRootDir.get(), './src'),
-            resolvePath(appRootDir.get(), './node_modules/p-limit'),
-            resolvePath(appRootDir.get(), './node_modules/p-locate'),
-            resolvePath(appRootDir.get(), './node_modules/p-map-series'),
-            resolvePath(appRootDir.get(), './node_modules/p-reduce'),
-          ],
+          include: [resolvePath(appRootDir.get(), './src')],
         },
       ],
     },
-  };
+  }
 }
 
-module.exports = webpackConfigFactory;
+module.exports = webpackConfigFactory

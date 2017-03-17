@@ -6,7 +6,43 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Children } from 'react'
-import pMapSeries from 'p-map-series'
+
+// Lifted from https://github.com/sindresorhus/p-reduce
+// Thanks @sindresorhus!
+const pReduce = (iterable, reducer, initVal) =>
+  new Promise((resolve, reject) => {
+    const iterator = iterable[Symbol.iterator]()
+    let i = 0
+
+    const next = (total) => {
+      const el = iterator.next()
+
+      if (el.done) {
+        resolve(total)
+        return
+      }
+
+      Promise.all([total, el.value])
+        .then((value) => {
+          // eslint-disable-next-line no-plusplus
+          next(reducer(value[0], value[1], i++))
+        })
+        .catch(reject)
+    }
+
+    next(initVal)
+  })
+
+// Lifted from https://github.com/sindresorhus/p-map-series
+// Thanks @sindresorhus!
+const pMapSeries = (iterable, iterator) => {
+  const ret = []
+
+  return pReduce(iterable, (a, b, i) =>
+    Promise.resolve(iterator(b, i)).then((val) => {
+      ret.push(val)
+    })).then(() => ret)
+}
 
 export const isPromise = x => x != null && typeof x.then === 'function'
 
