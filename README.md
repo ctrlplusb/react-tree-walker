@@ -68,22 +68,27 @@ const values = [];
  * @param  context - The current "React Context". Any provided childContexTypes
  *                   will be passed down the tree.
  *
- * @return `undefined` if you want to continue walking down the current branch,
- *         or return `false` if you wish to stop the traversal down the
- *         current branch.  Stopping the traversal can be quite handy if
- *         you want to resolve a Promise for example.  You can wait for the
- *         Promise to resolve and then execute a function to continue
- *         traversal of the branch where you left off.
+ * @return `true` to continue walking down the current branch,
+ *         OR
+ *         `false` if you wish to stop the traversal down the current branch,
+ *         OR
+ *         `Promise<true|false>` a promise that resolves to either true/false
  */
 function visitor(element, instance, context) {
   if (instance && typeof instance.getValue) {
+    const value = instance.getValue()
+    if (value === 4) {
+      // stop traversal on this branch of tree.
+      return false
+    }
     values.push(instance.getValue());
   }
+  return true
 };
 
 reactTreeWalker(app, visitor);
 
-console.log(values); // [1, 2, 4, 5, 3];
+console.log(values); // [1, 2, 4, 3];
 ```
 
 ## FAQs
