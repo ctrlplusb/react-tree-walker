@@ -152,5 +152,9 @@ export default function reactTreeWalker(element, visitor, context) {
         true,
       )
     }
+  }).catch((err) => {
+    // We don't want errors to be swallowed!
+    console.error('Error walking your react tree')
+    console.error(err)
   })
 }
