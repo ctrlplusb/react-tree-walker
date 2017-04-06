@@ -7,6 +7,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Children } from 'react'
 
+const defaultOptions = {
+  componentWillUnmount: false,
+}
+
 // Lifted from https://github.com/sindresorhus/p-reduce
 // Thanks @sindresorhus!
 const pReduce = (iterable, reducer, initVal) =>
@@ -49,7 +53,7 @@ export const isPromise = x => x != null && typeof x.then === 'function'
 // Recurse an React Element tree, running visitor on each element.
 // If visitor returns `false`, don't call the element's render function
 // or recurse into its child elements
-export default function reactTreeWalker(element, visitor, context) {
+export default function reactTreeWalker(element, visitor, context, options = defaultOptions) {
   return new Promise((resolve) => {
     const doVisit = (getChildren, visitorResult, childContext, isChildren) => {
       const doTraverse = (shouldContinue) => {
@@ -129,7 +133,21 @@ export default function reactTreeWalker(element, visitor, context) {
               instance.componentWillMount()
             }
 
-            return instance.render()
+            const children = instance.render()
+
+            if (options.componentWillUnmount && instance.componentWillUnmount) {
+              try {
+                instance.componentWillUnmount()
+              } catch (err) {
+                // This is an experimental feature, we don't want to break
+                // the bootstrapping process, but lets warn the user it
+                // occurred.
+                console.warn('Error calling componentWillUnmount whilst walking your react tree')
+                console.warn(err)
+              }
+            }
+
+            return children
           },
           visitor(element, instance, context),
           () =>

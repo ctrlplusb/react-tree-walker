@@ -111,17 +111,28 @@ describe('reactTreeWalker', () => {
       }
     }
 
-    const tree = <Baz />
-    // eslint-disable-next-line no-unused-vars
-    const visitor = (element, instance, context) => {
-      if (instance) {
-        return true
-      }
-      return true
-    }
-    return reactTreeWalker(tree, visitor).then(() => {
+    return reactTreeWalker(<Baz />, () => true).then(() => {
       const expected = { foo: 'bar' }
       expect(actual).toMatchObject(expected)
+    })
+  })
+
+  it('calls componentWillUnmount and does not fail if it errors', () => {
+    let called = true
+
+    class Baz extends Component {
+      componentWillUnmount() {
+        called = true
+        throw new Error('An error during unmount')
+      }
+
+      render() {
+        return <div>foo</div>
+      }
+    }
+
+    return reactTreeWalker(<Baz />, () => true, null, { componentWillUnmount: true }).then(() => {
+      expect(called).toBeTruthy()
     })
   })
 
@@ -144,9 +155,7 @@ describe('reactTreeWalker', () => {
     Qux.contextTypes = { foo: React.PropTypes.string.isRequired }
 
     const tree = <Baz><Qux /></Baz>
-    // eslint-disable-next-line no-unused-vars
-    const visitor = (element, instance, context) => undefined
-    return reactTreeWalker(tree, visitor).then(() => {
+    return reactTreeWalker(tree, () => true).then(() => {
       const expected = { foo: 'bar' }
       expect(actual).toMatchObject(expected)
     })
