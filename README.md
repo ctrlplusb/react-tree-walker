@@ -17,7 +17,7 @@ Walk a React element tree, executing a provided visitor function against each el
 
 Originally inspired/lifted from the awesome [`react-apollo`](https://github.com/apollostack/react-apollo) project.
 
-This modified version expands upon the design, making it `Promise` based, and allowing a visit by a visitor to return a `Promise`, which would subsequently delay the tree walking until the `Promise` is resolved.  The tree is still walked in a depth-first fashion.
+This modified version expands upon the design, making it `Promise` based, allowing the visitor to return a `Promise`, which would subsequently delay the tree walking until the `Promise` is resolved.  The tree is still walked in a depth-first fashion.
 
 With this you could, for example, perform pre-rendering parses on your React element tree to do things like data prefetching. 🤛
 
