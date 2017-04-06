@@ -8,8 +8,19 @@ exports.default = reactTreeWalker;
 
 var _react = require('react');
 
+var defaultOptions = {
+  componentWillUnmount: false
+};
+
 // Lifted from https://github.com/sindresorhus/p-reduce
 // Thanks @sindresorhus!
+/* eslint-disable no-console */
+
+// Inspired by the awesome work done by the Apollo team.
+// See https://github.com/apollostack/react-apollo/blob/master/src/server.ts
+// This version has been adapted to be promise based.
+
+// eslint-disable-next-line import/no-extraneous-dependencies
 var pReduce = function pReduce(iterable, reducer, initVal) {
   return new Promise(function (resolve, reject) {
     var iterator = iterable[Symbol.iterator]();
@@ -35,13 +46,6 @@ var pReduce = function pReduce(iterable, reducer, initVal) {
 
 // Lifted from https://github.com/sindresorhus/p-map-series
 // Thanks @sindresorhus!
-/* eslint-disable no-console */
-
-// Inspired by the awesome work done by the Apollo team.
-// See https://github.com/apollostack/react-apollo/blob/master/src/server.ts
-// This version has been adapted to be promise based.
-
-// eslint-disable-next-line import/no-extraneous-dependencies
 var pMapSeries = function pMapSeries(iterable, iterator) {
   var ret = [];
 
@@ -62,6 +66,8 @@ var isPromise = exports.isPromise = function isPromise(x) {
 // If visitor returns `false`, don't call the element's render function
 // or recurse into its child elements
 function reactTreeWalker(element, visitor, context) {
+  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : defaultOptions;
+
   return new Promise(function (resolve) {
     var doVisit = function doVisit(getChildren, visitorResult, childContext, isChildren) {
       var doTraverse = function doTraverse(shouldContinue) {
@@ -140,7 +146,21 @@ function reactTreeWalker(element, visitor, context) {
             instance.componentWillMount();
           }
 
-          return instance.render();
+          var children = instance.render();
+
+          if (options.componentWillUnmount && instance.componentWillUnmount) {
+            try {
+              instance.componentWillUnmount();
+            } catch (err) {
+              // This is an experimental feature, we don't want to break
+              // the bootstrapping process, but lets warn the user it
+              // occurred.
+              console.warn('Error calling componentWillUnmount whilst walking your react tree');
+              console.warn(err);
+            }
+          }
+
+          return children;
         }, visitor(element, instance, context), function () {
           return (
             // Ensure the child context is initialised if it is available. We will
