@@ -72,12 +72,12 @@ export default function reactTreeWalker(element, visitor, context, options = def
           // If its a react Children collection we need to breadth-first
           // traverse each of them.
           const mapper = aChild =>
-            aChild ? reactTreeWalker(aChild, visitor, theChildContext) : undefined
+            aChild ? reactTreeWalker(aChild, visitor, theChildContext, options) : undefined
           // pMapSeries allows us to do depth-first traversal. Thanks @sindresorhus!
           pMapSeries(Children.map(child, cur => cur), mapper).then(resolve)
         } else {
           // Otherwise we pass the individual child to the next recursion.
-          reactTreeWalker(child, visitor, theChildContext).then(resolve)
+          reactTreeWalker(child, visitor, theChildContext, options).then(resolve)
         }
       }
 
