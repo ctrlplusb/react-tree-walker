@@ -68,7 +68,7 @@ export default function reactTreeWalker(element, visitor, context, options = def
         if (child == null) {
           // If no children then we can't traverse.  We've reached the leaf.
           resolve()
-        } else if (isChildren) {
+        } else if (isChildren || Children.count(child)) {
           // If its a react Children collection we need to breadth-first
           // traverse each of them.
           const mapper = aChild =>
