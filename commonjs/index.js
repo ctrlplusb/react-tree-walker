@@ -10,11 +10,10 @@ var _react = require('react');
 
 var defaultOptions = {
   componentWillUnmount: false
-};
 
-// Lifted from https://github.com/sindresorhus/p-reduce
-// Thanks @sindresorhus!
-/* eslint-disable no-console */
+  // Lifted from https://github.com/sindresorhus/p-reduce
+  // Thanks @sindresorhus!
+}; /* eslint-disable no-console */
 
 // Inspired by the awesome work done by the Apollo team.
 // See https://github.com/apollostack/react-apollo/blob/master/src/server.ts
@@ -121,10 +120,10 @@ function reactTreeWalker(element, visitor, context) {
     // Is this element a Component?
     if (typeof element.type === 'function') {
       var Component = element.type;
-      var props = Object.assign({}, Component.defaultProps, element.props);
+      var props = Object.assign({}, Component.defaultProps, element.props
 
       // Is this a class component? (http://bit.ly/2j9Ifk3)
-      var isReactClassComponent = Component.prototype && (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
+      );var isReactClassComponent = Component.prototype && (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
 
       if (isReactClassComponent) {
         // React class component
