@@ -8,9 +8,6 @@
     "node": true,
     "jest": true,
   },
-  "ecmaFeatures": {
-    "defaultParams": true
-  },
   "rules": {
     "no-confusing-arrow": 0,
 
