@@ -45,7 +45,8 @@ const pMapSeries = (iterable, iterator) => {
   return pReduce(iterable, (a, b, i) =>
     Promise.resolve(iterator(b, i)).then((val) => {
       ret.push(val)
-    })).then(() => ret)
+    }),
+  ).then(() => ret)
 }
 
 export const isPromise = x => x != null && typeof x.then === 'function'
@@ -109,7 +110,8 @@ export default function reactTreeWalker(element, visitor, context, options = def
       const props = Object.assign({}, Component.defaultProps, element.props)
 
       // Is this a class component? (http://bit.ly/2j9Ifk3)
-      const isReactClassComponent = Component.prototype &&
+      const isReactClassComponent =
+        Component.prototype &&
         (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent)
 
       if (isReactClassComponent) {
@@ -164,7 +166,7 @@ export default function reactTreeWalker(element, visitor, context, options = def
     } else {
       // This must be a basic element, such as a string or dom node.
       doVisit(
-        () => element.props && element.props.children ? element.props.children : undefined,
+        () => (element.props && element.props.children ? element.props.children : undefined),
         visitor(element, null, context),
         context,
         true,
