@@ -7,7 +7,7 @@
 		exports["ReactTreeWalker"] = factory(require("react"));
 	else
 		root["ReactTreeWalker"] = factory(root["React"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_0__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -43,9 +43,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
-/******/ 	// identity function for calling harmony imports with the correct context
-/******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -73,17 +70,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
-
-/***/ }),
-/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -95,7 +86,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.isPromise = undefined;
 exports.default = reactTreeWalker;
 
-var _react = __webpack_require__(0);
+var _react = __webpack_require__(1);
 
 var defaultOptions = {
   componentWillUnmount: false
@@ -170,7 +161,7 @@ function reactTreeWalker(element, visitor, context) {
         if (child == null) {
           // If no children then we can't traverse.  We've reached the leaf.
           resolve();
-        } else if (isChildren) {
+        } else if (isChildren || _react.Children.count(child)) {
           // If its a react Children collection we need to breadth-first
           // traverse each of them.
           var mapper = function mapper(aChild) {
@@ -209,10 +200,10 @@ function reactTreeWalker(element, visitor, context) {
     // Is this element a Component?
     if (typeof element.type === 'function') {
       var Component = element.type;
-      var props = Object.assign({}, Component.defaultProps, element.props
+      var props = Object.assign({}, Component.defaultProps, element.props);
 
       // Is this a class component? (http://bit.ly/2j9Ifk3)
-      );var isReactClassComponent = Component.prototype && (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
+      var isReactClassComponent = Component.prototype && (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
 
       if (isReactClassComponent) {
         // React class component
@@ -274,6 +265,12 @@ function reactTreeWalker(element, visitor, context) {
     console.error(err);
   });
 }
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ })
 /******/ ]);

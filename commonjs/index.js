@@ -81,7 +81,7 @@ function reactTreeWalker(element, visitor, context) {
         if (child == null) {
           // If no children then we can't traverse.  We've reached the leaf.
           resolve();
-        } else if (isChildren) {
+        } else if (isChildren || _react.Children.count(child)) {
           // If its a react Children collection we need to breadth-first
           // traverse each of them.
           var mapper = function mapper(aChild) {
@@ -120,10 +120,10 @@ function reactTreeWalker(element, visitor, context) {
     // Is this element a Component?
     if (typeof element.type === 'function') {
       var Component = element.type;
-      var props = Object.assign({}, Component.defaultProps, element.props
+      var props = Object.assign({}, Component.defaultProps, element.props);
 
       // Is this a class component? (http://bit.ly/2j9Ifk3)
-      );var isReactClassComponent = Component.prototype && (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
+      var isReactClassComponent = Component.prototype && (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent);
 
       if (isReactClassComponent) {
         // React class component

@@ -5,6 +5,7 @@
 /* eslint-disable class-methods-use-this */
 
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import reactTreeWalker from '../index'
 
 const Bob = ({ children }) => <div>{children}</div>
@@ -30,15 +31,13 @@ describe('reactTreeWalker', () => {
 
   const resolveLater = result =>
     new Promise(resolve =>
-      setTimeout(
-        () => {
-          resolve(result)
-        },
-        10,
-      ))
+      setTimeout(() => {
+        resolve(result)
+      }, 10),
+    )
 
-  const createTree = async => (
-    <div>
+  const createTree = async =>
+    (<div>
       <h1>Hello World!</h1>
       <Foo something={async ? () => resolveLater(1) : 1} />
       <Foo something={async ? () => resolveLater(2) : 2}>
@@ -53,8 +52,7 @@ describe('reactTreeWalker', () => {
         </div>
       </Foo>
       <Foo something={async ? () => resolveLater(3) : 3} />
-    </div>
-  )
+    </div>)
 
   it('simple sync visitor', () => {
     const tree = createTree(false)
@@ -95,7 +93,7 @@ describe('reactTreeWalker', () => {
     let actual = {}
 
     class Baz extends Component {
-      state: { foo: string };
+      state: { foo: string }
 
       constructor(props) {
         super(props)
@@ -139,7 +137,7 @@ describe('reactTreeWalker', () => {
 
   it('getChildContext', () => {
     class Baz extends Component {
-      props: { children?: any };
+      props: { children?: any }
       getChildContext() {
         return { foo: 'bar' }
       }
@@ -153,7 +151,7 @@ describe('reactTreeWalker', () => {
       actual = context
       return <div>qux</div>
     }
-    Qux.contextTypes = { foo: React.PropTypes.string.isRequired }
+    Qux.contextTypes = { foo: PropTypes.string.isRequired }
 
     const tree = <Baz><Qux /></Baz>
     return reactTreeWalker(tree, () => true).then(() => {

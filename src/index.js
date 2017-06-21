@@ -45,7 +45,8 @@ const pMapSeries = (iterable, iterator) => {
   return pReduce(iterable, (a, b, i) =>
     Promise.resolve(iterator(b, i)).then((val) => {
       ret.push(val)
-    })).then(() => ret)
+    }),
+  ).then(() => ret)
 }
 
 export const isPromise = x => x != null && typeof x.then === 'function'
@@ -55,7 +56,7 @@ export const isPromise = x => x != null && typeof x.then === 'function'
 // or recurse into its child elements
 export default function reactTreeWalker(element, visitor, context, options = defaultOptions) {
   return new Promise((resolve) => {
-    const doVisit = (getChildren, visitorResult, childContext, isChildren) => {
+    const doVisit = (getChildren, visitorResult, childContext) => {
       const doTraverse = (shouldContinue) => {
         if (!shouldContinue) {
           // We recieved a false, which indicates a desire to stop traversal.
@@ -68,7 +69,7 @@ export default function reactTreeWalker(element, visitor, context, options = def
         if (child == null) {
           // If no children then we can't traverse.  We've reached the leaf.
           resolve()
-        } else if (isChildren || Children.count(child)) {
+        } else if (Children.count(child)) {
           // If its a react Children collection we need to breadth-first
           // traverse each of them.
           const mapper = aChild =>
@@ -109,7 +110,8 @@ export default function reactTreeWalker(element, visitor, context, options = def
       const props = Object.assign({}, Component.defaultProps, element.props)
 
       // Is this a class component? (http://bit.ly/2j9Ifk3)
-      const isReactClassComponent = Component.prototype &&
+      const isReactClassComponent =
+        Component.prototype &&
         (Component.prototype.isReactComponent || Component.prototype.isPureReactComponent)
 
       if (isReactClassComponent) {
@@ -164,10 +166,9 @@ export default function reactTreeWalker(element, visitor, context, options = def
     } else {
       // This must be a basic element, such as a string or dom node.
       doVisit(
-        () => element.props && element.props.children ? element.props.children : undefined,
+        () => (element.props && element.props.children ? element.props.children : undefined),
         visitor(element, null, context),
         context,
-        true,
       )
     }
   }).catch((err) => {
