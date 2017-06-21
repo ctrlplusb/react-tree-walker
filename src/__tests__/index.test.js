@@ -24,7 +24,7 @@ describe('reactTreeWalker', () => {
     }
 
     render() {
-      return <div>{this.props.children}</div>
+      return this.props.children
     }
   }
 
@@ -46,6 +46,7 @@ describe('reactTreeWalker', () => {
           <Bob>
             <Foo something={async ? () => resolveLater(4) : 4}>
               <Foo something={async ? () => resolveLater(5) : 5} />
+              <Foo something={async ? () => resolveLater(6) : 6} />
             </Foo>
           </Bob>
           <div>hi!</div>
@@ -66,7 +67,7 @@ describe('reactTreeWalker', () => {
       }
     }
     return reactTreeWalker(tree, visitor).then(() => {
-      const expected = [1, 2, 4, 5, 3]
+      const expected = [1, 2, 4, 5, 6, 3]
       expect(actual).toEqual(expected)
     })
   })
@@ -85,7 +86,7 @@ describe('reactTreeWalker', () => {
       return true
     }
     return reactTreeWalker(tree, visitor).then(() => {
-      const expected = [1, 2, 4, 5, 3]
+      const expected = [1, 2, 4, 5, 6, 3]
       expect(actual).toEqual(expected)
     })
   })
