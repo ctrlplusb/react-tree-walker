@@ -68,7 +68,7 @@ function reactTreeWalker(element, visitor, context) {
   var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : defaultOptions;
 
   return new Promise(function (resolve) {
-    var doVisit = function doVisit(getChildren, visitorResult, childContext, isChildren) {
+    var doVisit = function doVisit(getChildren, visitorResult, childContext) {
       var doTraverse = function doTraverse(shouldContinue) {
         if (!shouldContinue) {
           // We recieved a false, which indicates a desire to stop traversal.
@@ -81,7 +81,7 @@ function reactTreeWalker(element, visitor, context) {
         if (child == null) {
           // If no children then we can't traverse.  We've reached the leaf.
           resolve();
-        } else if (isChildren || _react.Children.count(child)) {
+        } else if (_react.Children.count(child)) {
           // If its a react Children collection we need to breadth-first
           // traverse each of them.
           var mapper = function mapper(aChild) {
@@ -177,7 +177,7 @@ function reactTreeWalker(element, visitor, context) {
       // This must be a basic element, such as a string or dom node.
       doVisit(function () {
         return element.props && element.props.children ? element.props.children : undefined;
-      }, visitor(element, null, context), context, true);
+      }, visitor(element, null, context), context);
     }
   }).catch(function (err) {
     // We don't want errors to be swallowed!
