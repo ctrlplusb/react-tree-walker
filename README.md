@@ -79,7 +79,7 @@ function visitor(element, instance, context) {
   if (instance && typeof instance.getData) {
     return instance.getData()
       .then((value) => {
-        values.push(instance.getValue());
+        values.push(value);
         return value === 4
           // prevent traversing "4"'s children
           ? false
