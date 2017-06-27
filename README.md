@@ -34,8 +34,9 @@ class Foo extends React.Component {
     this.getValue = this.getValue.bind(this);
   }
 
-  getValue() {
-    return this.props.value;
+  getData() {
+    // Return a promise or a sync value  
+    return Promise.resolve(this.props.value);
   }
 
   render() {
@@ -75,13 +76,16 @@ const values = [];
  *         `Promise<true|false>` a promise that resolves to either true/false
  */
 function visitor(element, instance, context) {
-  if (instance && typeof instance.getValue) {
-    const value = instance.getValue()
-    if (value === 4) {
-      // stop traversal on this branch of tree.
-      return false
-    }
-    values.push(instance.getValue());
+  if (instance && typeof instance.getData) {
+    return instance.getData()
+      .then((value) => {
+        values.push(instance.getValue());
+        return value === 4
+          // prevent traversing "4"'s children
+          ? false
+          : true
+        }
+      })
   }
   return true
 };
