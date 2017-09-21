@@ -36,8 +36,8 @@ describe('reactTreeWalker', () => {
       }, 10),
     )
 
-  const createTree = async =>
-    (<div>
+  const createTree = async => (
+    <div>
       <h1>Hello World!</h1>
       <Foo something={async ? () => resolveLater(1) : 1} />
       <Foo something={async ? () => resolveLater(2) : 2}>
@@ -52,7 +52,8 @@ describe('reactTreeWalker', () => {
         </div>
       </Foo>
       <Foo something={async ? () => resolveLater(3) : 3} />
-    </div>)
+    </div>
+  )
 
   it('simple sync visitor', () => {
     const tree = createTree(false)
@@ -76,7 +77,7 @@ describe('reactTreeWalker', () => {
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => {
       if (instance && typeof instance.getSomething === 'function') {
-        return instance.getSomething().then((something) => {
+        return instance.getSomething().then(something => {
           actual.push(something)
           return true
         })
@@ -130,7 +131,9 @@ describe('reactTreeWalker', () => {
       }
     }
 
-    return reactTreeWalker(<Baz />, () => true, null, { componentWillUnmount: true }).then(() => {
+    return reactTreeWalker(<Baz />, () => true, null, {
+      componentWillUnmount: true,
+    }).then(() => {
       expect(called).toBeTruthy()
     })
   })
@@ -153,7 +156,11 @@ describe('reactTreeWalker', () => {
     }
     Qux.contextTypes = { foo: PropTypes.string.isRequired }
 
-    const tree = <Baz><Qux /></Baz>
+    const tree = (
+      <Baz>
+        <Qux />
+      </Baz>
+    )
     return reactTreeWalker(tree, () => true).then(() => {
       const expected = { foo: 'bar' }
       expect(actual).toMatchObject(expected)
