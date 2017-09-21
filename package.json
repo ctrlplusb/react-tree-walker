@@ -34,23 +34,6 @@
     "test:coverage": "npm run test -- --coverage",
     "test:coverage:deploy": "npm run test:coverage && codecov"
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}"
-    ],
-    "snapshotSerializers": [
-      "<rootDir>/node_modules/enzyme-to-json/serializer"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootDir>/(commonjs|coverage|flow-typed|node_modules|tools|umd)/"
-    ]
-  },
-  "lint-staged": {
-    "*.js": [
-      "prettier-eslint --write",
-      "git add"
-    ]
-  },
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0"
   },
@@ -82,8 +65,6 @@
     "jest": "^21.1.0",
     "lint-staged": "^4.2.1",
     "prettier": "^1.7.0",
-    "prettier-eslint": "^8.1.1",
-    "prettier-eslint-cli": "^4.3.2",
     "pretty-bytes": "4.0.2",
     "prop-types": "^15.5.10",
     "ramda": "0.24.1",
@@ -96,5 +77,61 @@
     "webpack": "^3.6.0",
     "webpack-dev-middleware": "^1.12.0",
     "webpack-hot-middleware": "^2.19.1"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}"
+    ],
+    "snapshotSerializers": [
+      "<rootDir>/node_modules/enzyme-to-json/serializer"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/(commonjs|coverage|flow-typed|node_modules|tools|umd)/"
+    ]
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "babel-eslint",
+    "env": {
+      "browser": true,
+      "es6": true,
+      "node": true
+    },
+    "extends": "airbnb",
+    "rules": {
+      "array-callback-return": 0,
+      "arrow-parens": [
+        "error",
+        "as-needed"
+      ],
+      "camelcase": 0,
+      "import/prefer-default-export": 0,
+      "import/no-extraneous-dependencies": 0,
+      "indent": 0,
+      "no-mixed-operators": 0,
+      "no-underscore-dangle": 0,
+      "no-confusing-arrow": 0,
+      "no-nested-ternary": 0,
+      "react/no-array-index-key": 0,
+      "react/react-in-jsx-scope": 0,
+      "semi": [
+        2,
+        "never"
+      ],
+      "react/forbid-prop-types": 0,
+      "react/jsx-filename-extension": 0,
+      "react/sort-comp": 0
+    }
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }
