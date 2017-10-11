@@ -94,8 +94,6 @@ describe('reactTreeWalker', () => {
     let actual = {}
 
     class Baz extends Component {
-      state: { foo: string }
-
       constructor(props) {
         super(props)
         this.state = { foo: 'foo' }
@@ -107,7 +105,7 @@ describe('reactTreeWalker', () => {
 
       render() {
         actual = this.state
-        return <div>foo</div>
+        return <div>{this.state.foo}</div>
       }
     }
 
