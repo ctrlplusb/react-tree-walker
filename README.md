@@ -31,7 +31,7 @@ import reactTreeWalker from 'react-tree-walker';
 class Foo extends React.Component {
   constructor(props) {
     super(props);
-    this.getValue = this.getValue.bind(this);
+    this.getData = this.getData.bind(this);
   }
 
   getData() {
@@ -90,9 +90,10 @@ function visitor(element, instance, context) {
   return true
 };
 
-reactTreeWalker(app, visitor);
+reactTreeWalker(app, visitor).then(() => {
+  console.log(values); // [1, 2, 4, 3];
+});
 
-console.log(values); // [1, 2, 4, 3];
 ```
 
 ## FAQs
