@@ -84,11 +84,10 @@ function visitor(element, instance, context) {
           // prevent traversing "4"'s children
           ? false
           : true
-        }
       })
   }
   return true
-};
+}
 
 reactTreeWalker(app, visitor).then(() => {
   console.log(values); // [1, 2, 4, 3];
