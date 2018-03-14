@@ -101,6 +101,7 @@ describe('reactTreeWalker', () => {
 
       componentWillMount() {
         this.setState({ foo: 'bar' })
+        this.setState((state, props) => ({ other: `I am ${props.value} ${state.foo}` }))
       }
 
       render() {
@@ -109,8 +110,8 @@ describe('reactTreeWalker', () => {
       }
     }
 
-    return reactTreeWalker(<Baz />, () => true).then(() => {
-      const expected = { foo: 'bar' }
+    return reactTreeWalker(<Baz value="foo" />, () => true).then(() => {
+      const expected = { foo: 'bar', other: 'I am foo bar' }
       expect(actual).toMatchObject(expected)
     })
   })
