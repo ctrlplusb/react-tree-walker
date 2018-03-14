@@ -101,6 +101,7 @@ describe('reactTreeWalker', () => {
 
       componentWillMount() {
         this.setState({ foo: 'bar' })
+        this.setState((state, props) => ({ other: `I am ${props.value} ${state.foo}` }))
       }
 
       render() {
@@ -109,8 +110,8 @@ describe('reactTreeWalker', () => {
       }
     }
 
-    return reactTreeWalker(<Baz />, () => true).then(() => {
-      const expected = { foo: 'bar' }
+    return reactTreeWalker(<Baz value="foo" />, () => true).then(() => {
+      const expected = { foo: 'bar', other: 'I am foo bar' }
       expect(actual).toMatchObject(expected)
     })
   })
@@ -162,6 +163,38 @@ describe('reactTreeWalker', () => {
     return reactTreeWalker(tree, () => true).then(() => {
       const expected = { foo: 'bar' }
       expect(actual).toMatchObject(expected)
+    })
+  })
+
+  it('works with instance-as-result component', () => {
+    // eslint-disable-next-line react/prefer-stateless-function
+    class Baz extends Component {
+      render() {
+        return (
+          <div>
+            <Foo something={1} />
+            <Foo something={2} />
+          </div>
+        )
+      }
+    }
+    const Bar = props => new Baz(props)
+    const tree = (
+      <div>
+        <Bar />
+      </div>
+    )
+    const actual = []
+    // eslint-disable-next-line no-unused-vars
+    const visitor = (element, instance, context) => {
+      if (instance && typeof instance.getSomething === 'function') {
+        const something = instance.getSomething()
+        actual.push(something)
+      }
+    }
+    return reactTreeWalker(tree, visitor).then(() => {
+      const expected = [1, 2]
+      expect(actual).toEqual(expected)
     })
   })
 })
