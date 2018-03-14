@@ -14,3 +14,7 @@ coverage
 # Flow
 flow-coverage
 flow-typed
+
+# Build output
+commonjs
+umd
