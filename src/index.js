@@ -49,6 +49,11 @@ const pMapSeries = (iterable, iterator) => {
   ).then(() => ret)
 }
 
+const ensureChild = child =>
+  child && typeof child.render === 'function'
+    ? ensureChild(child.render())
+    : child
+
 export const isPromise = x => x != null && typeof x.then === 'function'
 
 // Recurse an React Element tree, running visitor on each element.
@@ -68,7 +73,7 @@ export default function reactTreeWalker(
           resolve()
         }
 
-        const child = getChildren()
+        const child = ensureChild(getChildren())
         const theChildContext =
           typeof childContext === 'function' ? childContext() : childContext
 
@@ -136,6 +141,14 @@ export default function reactTreeWalker(
 
         // Make the setState synchronous.
         instance.setState = newState => {
+          if (typeof newState === 'function') {
+            // eslint-disable-next-line no-param-reassign
+            newState = newState(
+              instance.state,
+              instance.props,
+              instance.context,
+            )
+          }
           instance.state = Object.assign({}, instance.state, newState)
         }
 
