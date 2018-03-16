@@ -117,7 +117,7 @@ export default function reactTreeWalker(
                 if (promiseResult === false) {
                   innerResolve()
                 } else {
-                  return visitChildren()
+                  visitChildren()
                 }
               })
               .catch(reject)
