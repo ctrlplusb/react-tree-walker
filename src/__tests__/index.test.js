@@ -90,6 +90,25 @@ describe('reactTreeWalker', () => {
     })
   })
 
+  it('promise based visitor stops resolving', () => {
+    const tree = createTree(true)
+    const actual = []
+    // eslint-disable-next-line no-unused-vars
+    const visitor = (element, instance, context) => {
+      if (instance && typeof instance.getSomething === 'function') {
+        return instance.getSomething().then(something => {
+          actual.push(something)
+          return something !== 4
+        })
+      }
+      return true
+    }
+    return reactTreeWalker(tree, visitor).then(() => {
+      const expected = [1, 2, 4, 3]
+      expect(actual).toEqual(expected)
+    })
+  })
+
   it('componentWillMount & setState', () => {
     let actual = {}
 
@@ -101,7 +120,9 @@ describe('reactTreeWalker', () => {
 
       componentWillMount() {
         this.setState({ foo: 'bar' })
-        this.setState((state, props) => ({ other: `I am ${props.value} ${state.foo}` }))
+        this.setState((state, props) => ({
+          other: `I am ${props.value} ${state.foo}`,
+        }))
       }
 
       render() {
