@@ -35,7 +35,7 @@ class Foo extends React.Component {
   }
 
   getData() {
-    // Return a promise or a sync value  
+    // Return a promise or a sync value
     return Promise.resolve(this.props.value);
   }
 
@@ -66,10 +66,10 @@ const values = [];
  * @param  instance - If the current element is a Component or PureComponent
  *                    then this will hold the reference to the created
  *                    instance. For any other element type this will be null.
- * @param  context - The current "React Context". Any provided childContexTypes
+ * @param  context - The current "React Context". Any provided childContextTypes
  *                   will be passed down the tree.
  *
- * @return `true` to continue walking down the current branch,
+ * @return Anything other than `false` to continue walking down the current branch
  *         OR
  *         `false` if you wish to stop the traversal down the current branch,
  *         OR
@@ -80,18 +80,18 @@ function visitor(element, instance, context) {
     return instance.getData()
       .then((value) => {
         values.push(value);
-        return value === 4
-          // prevent traversing "4"'s children
-          ? false
-          : true
+        // Return "false" to indicate that we do not want to traverse "4"'s children
+        return value !== 4
       })
   }
-  return true
 }
 
-reactTreeWalker(app, visitor).then(() => {
-  console.log(values); // [1, 2, 4, 3];
-});
+reactTreeWalker(app, visitor)
+  .then(() => {
+    console.log(values); // [1, 2, 4, 3];
+  })
+  // since v3.0.0 you need to do your own error handling!
+  .catch(err => console.error(err));
 
 ```
 
