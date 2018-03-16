@@ -66,13 +66,8 @@ export default function reactTreeWalker(
   options = defaultOptions,
 ) {
   return new Promise(resolve => {
-    const doVisit = (getChildren, visitorResult, childContext) => {
-      const doTraverse = shouldContinue => {
-        if (!shouldContinue) {
-          // We recieved a false, which indicates a desire to stop traversal.
-          resolve()
-        }
-
+    const doVisit = (getChildren, visitResult, childContext) => {
+      const visitChildren = () => {
         const child = ensureChild(getChildren())
         const theChildContext =
           typeof childContext === 'function' ? childContext() : childContext
@@ -97,25 +92,34 @@ export default function reactTreeWalker(
         }
       }
 
-      if (visitorResult === false) {
+      if (visitResult === false) {
         // Visitor returned false, indicating a desire to not traverse.
         resolve()
-      } else if (isPromise(visitorResult)) {
+      } else if (isPromise(visitResult)) {
         // We need to execute the result and pass it's result through to our
         // continuer.
-        visitorResult.then(doTraverse).catch(e => {
-          console.log(
-            'Error occurred in Promise based visitor result provided to react-tree-walker.',
-          )
-          if (e) {
-            console.log(e)
-            if (e.stack) {
-              console.log(e.stack)
+        visitResult
+          .then(promiseResult => {
+            if (promiseResult === false) {
+              resolve()
+            } else {
+              visitChildren()
             }
-          }
-        })
+          })
+          .catch(e => {
+            console.log(
+              'Error occurred in Promise based visitor provided to react-tree-walker.',
+            )
+            if (e) {
+              console.log(e)
+              if (e.stack) {
+                console.log(e.stack)
+              }
+            }
+          })
       } else {
-        doTraverse(true)
+        // Visitor returned true, indicating a desire to continue traversing.
+        visitChildren()
       }
     }
 
