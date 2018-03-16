@@ -15,13 +15,13 @@ describe('reactTreeWalker', () => {
     constructor(props) {
       super(props)
       // $FlowIgnore
-      this.getSomething = this.getSomething.bind(this)
+      this.getData = this.getData.bind(this)
     }
 
-    getSomething() {
-      return typeof this.props.something === 'function'
-        ? this.props.something()
-        : this.props.something
+    getData() {
+      return typeof this.props.data === 'function'
+        ? this.props.data()
+        : this.props.data
     }
 
     render() {
@@ -39,19 +39,19 @@ describe('reactTreeWalker', () => {
   const createTree = async => (
     <div>
       <h1>Hello World!</h1>
-      <Foo something={async ? () => resolveLater(1) : 1} />
-      <Foo something={async ? () => resolveLater(2) : 2}>
+      <Foo data={async ? () => resolveLater(1) : 1} />
+      <Foo data={async ? () => resolveLater(2) : 2}>
         <div>
           <Bob>
-            <Foo something={async ? () => resolveLater(4) : 4}>
-              <Foo something={async ? () => resolveLater(5) : 5} />
-              <Foo something={async ? () => resolveLater(6) : 6} />
+            <Foo data={async ? () => resolveLater(4) : 4}>
+              <Foo data={async ? () => resolveLater(5) : 5} />
+              <Foo data={async ? () => resolveLater(6) : 6} />
             </Foo>
           </Bob>
           <div>hi!</div>
         </div>
       </Foo>
-      <Foo something={async ? () => resolveLater(3) : 3} />
+      <Foo data={async ? () => resolveLater(3) : 3} />
     </div>
   )
 
@@ -60,9 +60,9 @@ describe('reactTreeWalker', () => {
     const actual = []
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => {
-      if (instance && typeof instance.getSomething === 'function') {
-        const something = instance.getSomething()
-        actual.push(something)
+      if (instance && typeof instance.getData === 'function') {
+        const data = instance.getData()
+        actual.push(data)
       }
     }
     return reactTreeWalker(tree, visitor).then(() => {
@@ -76,9 +76,9 @@ describe('reactTreeWalker', () => {
     const actual = []
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => {
-      if (instance && typeof instance.getSomething === 'function') {
-        return instance.getSomething().then(something => {
-          actual.push(something)
+      if (instance && typeof instance.getData === 'function') {
+        return instance.getData().then(data => {
+          actual.push(data)
           return true
         })
       }
@@ -95,10 +95,10 @@ describe('reactTreeWalker', () => {
     const actual = []
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => {
-      if (instance && typeof instance.getSomething === 'function') {
-        return instance.getSomething().then(something => {
-          actual.push(something)
-          return something !== 4
+      if (instance && typeof instance.getData === 'function') {
+        return instance.getData().then(data => {
+          actual.push(data)
+          return data !== 4
         })
       }
       return true
@@ -193,8 +193,8 @@ describe('reactTreeWalker', () => {
       render() {
         return (
           <div>
-            <Foo something={1} />
-            <Foo something={2} />
+            <Foo data={1} />
+            <Foo data={2} />
           </div>
         )
       }
@@ -208,14 +208,68 @@ describe('reactTreeWalker', () => {
     const actual = []
     // eslint-disable-next-line no-unused-vars
     const visitor = (element, instance, context) => {
-      if (instance && typeof instance.getSomething === 'function') {
-        const something = instance.getSomething()
-        actual.push(something)
+      if (instance && typeof instance.getData === 'function') {
+        const data = instance.getData()
+        actual.push(data)
       }
     }
     return reactTreeWalker(tree, visitor).then(() => {
       const expected = [1, 2]
       expect(actual).toEqual(expected)
+    })
+  })
+
+  describe('error handling', () => {
+    it('throws async visitor errors', () => {
+      const tree = createTree(true)
+      const actual = []
+      // eslint-disable-next-line no-unused-vars
+      const visitor = (element, instance, context) => {
+        if (instance && typeof instance.getData === 'function') {
+          return instance.getData().then(data => {
+            actual.push(data)
+            if (data === 4) {
+              return Promise.reject(new Error('Visitor made 💩'))
+            }
+            return true
+          })
+        }
+        return true
+      }
+      return reactTreeWalker(tree, visitor).then(
+        () => {
+          throw new Error('Expected error was not thrown')
+        },
+        err => {
+          expect(err).toMatchObject(new Error('Visitor made 💩'))
+          expect(actual).toEqual([1, 2, 4])
+        },
+      )
+    })
+
+    it('throws sync visitor errors', () => {
+      const tree = createTree(false)
+      const actual = []
+      // eslint-disable-next-line no-unused-vars
+      const visitor = (element, instance, context) => {
+        if (instance && typeof instance.getData === 'function') {
+          const data = instance.getData()
+          actual.push(data)
+          if (data === 4) {
+            throw new Error('Visitor made 💩')
+          }
+        }
+        return true
+      }
+      return reactTreeWalker(tree, visitor).then(
+        () => {
+          throw new Error('Expected error was not thrown')
+        },
+        err => {
+          expect(err).toMatchObject(new Error('Visitor made 💩'))
+          expect(actual).toEqual([1, 2, 4])
+        },
+      )
     })
   })
 })
