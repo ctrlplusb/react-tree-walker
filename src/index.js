@@ -54,7 +54,7 @@ const ensureChild = child =>
     ? ensureChild(child.render())
     : child
 
-export const isPromise = x => x != null && typeof x.then === 'function'
+const isPromise = x => x != null && typeof x.then === 'function'
 
 // Recurse an React Element tree, running visitor on each element.
 // If visitor returns `false`, don't call the element's render function
