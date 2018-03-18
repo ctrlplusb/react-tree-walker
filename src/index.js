@@ -80,25 +80,19 @@ export default function reactTreeWalker(
         const visitCurrentElement = (childResolver, context, compInstance) =>
           Promise.resolve(safeVisitor(currentElement, compInstance, context))
             .then(result => {
-              if (result === false) {
-                // Visitor returned false, indicating a desire to not visit
-                // the children of the current element, so we will just resolve.
-                innerResolve()
-              } else {
+              if (result !== false) {
                 // A false wasn't returned so we will attempt to visit the children
                 // for the current element.
                 const child = ensureChild(childResolver())
                 const theChildContext =
                   typeof context === 'function' ? context() : context
-
                 if (child == null) {
-                  // No children. We've reached the end of this branch. resolve.
-                  innerResolve()
+                  // No children. We've reached the end of this branch.
                 } else if (Children.count(child)) {
                   // If its a react Children collection we need to breadth-first
                   // traverse each of them, and pMapSeries allows us to do a
                   // depth-first traversal that respects Promises. Thanks @sindresorhus!
-                  pMapSeries(
+                  return pMapSeries(
                     Children.map(child, cur => cur),
                     aChild =>
                       aChild ? recursive(aChild, theChildContext) : undefined,
@@ -107,11 +101,12 @@ export default function reactTreeWalker(
                     .catch(reject)
                 } else {
                   // Otherwise we pass the individual child to the next recursion.
-                  recursive(child, theChildContext)
+                  return recursive(child, theChildContext)
                     .then(innerResolve, reject)
                     .catch(reject)
                 }
               }
+              return undefined
             })
             .catch(reject)
 
@@ -170,20 +165,22 @@ export default function reactTreeWalker(
                     )
                   : currentContext,
               instance,
-            ).then(() => {
-              if (
-                options.componentWillUnmount &&
-                instance.componentWillUnmount
-              ) {
-                instance.componentWillUnmount()
-              }
-            })
+            )
+              .then(() => {
+                if (
+                  options.componentWillUnmount &&
+                  instance.componentWillUnmount
+                ) {
+                  instance.componentWillUnmount()
+                }
+              })
+              .then(innerResolve)
           } else {
             // Stateless Functional Component
             visitCurrentElement(
               () => Component(props, currentContext),
               currentContext,
-            )
+            ).then(innerResolve)
           }
         } else {
           // This must be a basic element, such as a string or dom node.
@@ -193,7 +190,7 @@ export default function reactTreeWalker(
                 ? currentElement.props.children
                 : undefined,
             currentContext,
-          )
+          ).then(innerResolve)
         }
       })
 
