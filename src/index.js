@@ -54,8 +54,6 @@ const ensureChild = child =>
     ? ensureChild(child.render())
     : child
 
-const isPromise = x => x != null && typeof x.then === 'function'
-
 // Recurse an React Element tree, running visitor on each element.
 // If visitor returns `false`, don't call the element's render function
 // or recurse into its child elements
@@ -79,53 +77,43 @@ export default function reactTreeWalker(
 
     const recursive = (currentElement, currentContext) =>
       new Promise(innerResolve => {
-        const doVisit = (getChildren, visitResult, childContext) => {
-          const visitChildren = () => {
-            const child = ensureChild(getChildren())
-            const theChildContext =
-              typeof childContext === 'function' ? childContext() : childContext
+        const visitCurrentElement = (childResolver, context, compInstance) =>
+          Promise.resolve(safeVisitor(currentElement, compInstance, context))
+            .then(result => {
+              if (result === false) {
+                // Visitor returned false, indicating a desire to not visit
+                // the children of the current element, so we will just resolve.
+                innerResolve()
+              } else {
+                // A false wasn't returned so we will attempt to visit the children
+                // for the current element.
+                const child = ensureChild(childResolver())
+                const theChildContext =
+                  typeof context === 'function' ? context() : context
 
-            if (child == null) {
-              // If no children then we can't traverse.  We've reached the leaf.
-              innerResolve()
-            } else if (Children.count(child)) {
-              // If its a react Children collection we need to breadth-first
-              // traverse each of them.
-              const mapper = aChild =>
-                aChild ? recursive(aChild, theChildContext) : undefined
-              const children = Children.map(child, cur => cur)
-              // pMapSeries allows us to do depth-first traversal. Thanks @sindresorhus!
-              pMapSeries(children, mapper)
-                .then(innerResolve, reject)
-                .catch(reject)
-            } else {
-              // Otherwise we pass the individual child to the next recursion.
-              recursive(child, theChildContext)
-                .then(innerResolve, reject)
-                .catch(reject)
-            }
-          }
-
-          if (visitResult === false) {
-            // Visitor returned false, indicating a desire to not traverse.
-            innerResolve()
-          } else if (isPromise(visitResult)) {
-            // We need to execute the result and pass it's result through to our
-            // continuer.
-            visitResult
-              .then(promiseResult => {
-                if (promiseResult === false) {
+                if (child == null) {
+                  // No children. We've reached the end of this branch. resolve.
                   innerResolve()
+                } else if (Children.count(child)) {
+                  // If its a react Children collection we need to breadth-first
+                  // traverse each of them, and pMapSeries allows us to do a
+                  // depth-first traversal that respects Promises. Thanks @sindresorhus!
+                  pMapSeries(
+                    Children.map(child, cur => cur),
+                    aChild =>
+                      aChild ? recursive(aChild, theChildContext) : undefined,
+                  )
+                    .then(innerResolve, reject)
+                    .catch(reject)
                 } else {
-                  visitChildren()
+                  // Otherwise we pass the individual child to the next recursion.
+                  recursive(child, theChildContext)
+                    .then(innerResolve, reject)
+                    .catch(reject)
                 }
-              })
-              .catch(reject)
-          } else {
-            // Visitor returned true, indicating a desire to continue traversing.
-            visitChildren()
-          }
-        }
+              }
+            })
+            .catch(reject)
 
         // Is this element a Component?
         if (typeof currentElement.type === 'function') {
@@ -164,38 +152,16 @@ export default function reactTreeWalker(
               instance.state = Object.assign({}, instance.state, newState)
             }
 
-            doVisit(
+            visitCurrentElement(
               () => {
-                // Call componentWillMount if it exists.
                 if (instance.componentWillMount) {
                   instance.componentWillMount()
                 }
-
-                const children = instance.render()
-
-                if (
-                  options.componentWillUnmount &&
-                  instance.componentWillUnmount
-                ) {
-                  try {
-                    instance.componentWillUnmount()
-                  } catch (err) {
-                    // This is an experimental feature, we don't want to break
-                    // the bootstrapping process, but lets warn the user it
-                    // occurred.
-                    console.warn(
-                      'Error calling componentWillUnmount whilst walking your react tree',
-                    )
-                    console.warn(err)
-                  }
-                }
-
-                return children
+                return instance.render()
               },
-              safeVisitor(currentElement, instance, currentContext),
               () =>
-                // Ensure the child context is initialised if it is available. We will
-                // need to pass it down the tree.
+                // Ensure the child context is initialised if it is available.
+                // We will need to pass it down the tree.
                 instance.getChildContext
                   ? Object.assign(
                       {},
@@ -203,23 +169,29 @@ export default function reactTreeWalker(
                       instance.getChildContext(),
                     )
                   : currentContext,
-            )
+              instance,
+            ).then(() => {
+              if (
+                options.componentWillUnmount &&
+                instance.componentWillUnmount
+              ) {
+                instance.componentWillUnmount()
+              }
+            })
           } else {
             // Stateless Functional Component
-            doVisit(
+            visitCurrentElement(
               () => Component(props, currentContext),
-              safeVisitor(currentElement, null, currentContext),
               currentContext,
             )
           }
         } else {
           // This must be a basic element, such as a string or dom node.
-          doVisit(
+          visitCurrentElement(
             () =>
               currentElement.props && currentElement.props.children
                 ? currentElement.props.children
                 : undefined,
-            safeVisitor(currentElement, null, currentContext),
             currentContext,
           )
         }

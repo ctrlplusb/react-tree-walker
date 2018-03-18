@@ -5,6 +5,7 @@
 /* eslint-disable class-methods-use-this */
 
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import reactTreeWalker from '../index'
 
@@ -137,13 +138,12 @@ describe('reactTreeWalker', () => {
     })
   })
 
-  it('calls componentWillUnmount and does not fail if it errors', () => {
+  it('calls componentWillUnmount', () => {
     let called = true
 
     class Baz extends Component {
       componentWillUnmount() {
         called = true
-        throw new Error('An error during unmount')
       }
 
       render() {
@@ -218,6 +218,33 @@ describe('reactTreeWalker', () => {
       expect(actual).toEqual(expected)
     })
   })
+
+  /*
+  fit('supports portals', () => {
+    // eslint-disable-next-line react/prefer-stateless-function
+    function Baz() {
+      return ReactDOM.createPortal(
+        <div>
+          <Foo data={1} />
+          <Foo data={2} />
+        </div>,
+        document.createElement('div'),
+      )
+    }
+    const actual = []
+    // eslint-disable-next-line no-unused-vars
+    const visitor = (element, instance, context) => {
+      if (instance && typeof instance.getData === 'function') {
+        const data = instance.getData()
+        actual.push(data)
+      }
+    }
+    return reactTreeWalker(<Baz />, visitor).then(() => {
+      const expected = [1, 2]
+      expect(actual).toEqual(expected)
+    })
+  })
+  */
 
   describe('error handling', () => {
     it('throws async visitor errors', () => {
