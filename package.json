@@ -1,11 +1,11 @@
 {
   "name": "react-tree-walker",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description":
     "Walk a React element tree, executing a provided function against each node.",
   "license": "MIT",
   "main": "commonjs/index.js",
-  "files": ["*.js", "*.md", "umd", "commonjs"],
+  "files": ["*.js", "*.md", "dist"],
   "repository": {
     "type": "git",
     "url": "https://github.com/ctrlplusb/react-tree-walker.git"
