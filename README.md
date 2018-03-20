@@ -114,7 +114,9 @@ That being said you do have a bail-out ability allowing you to suspend the trave
 
 The API is very simple at the moment, only exposing a single function, which you can import as follows
 
-### `react-tree-walker` (`Function`)
+### **reactTreeWalker**
+
+The default export of the library. The function that performs the magic.
 
 ```
 const reactTreeWalker = require('react-tree-walker')
@@ -156,9 +158,11 @@ import reactTreeWalker from 'react-tree-walker'
 
 A `Promise` that resolves when the tree walking is completed.
 
-### `visitor`
+### **visitor**
 
-Encapsulates the logic you wish to execute against each element. You create and provide this function to the `reactTreeWalker`.
+The function that you create and provide to `reactTreeWalker`.
+
+It should encapsulates the logic you wish to execute against each element.
 
 **Parameters**
 
