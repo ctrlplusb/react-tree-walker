@@ -7,10 +7,7 @@ cache:
 node_js:
 - '8'
 script:
-# Unfortunately flow falls over when a dep exists in peer deps and others. :(
-# @see https://github.com/flowtype/flow-typed/issues/528
-#- npm run flow:defs
-- npm run check
+- npm run link
 after_success:
 # Deploy code coverage report to codecov.io
 - npm run test:coverage:deploy
