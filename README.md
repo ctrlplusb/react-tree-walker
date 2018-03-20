@@ -114,6 +114,8 @@ That being said you do have a bail-out ability allowing you to suspend the trave
 
 The API is very simple at the moment, only exposing a single function, which you can import as follows
 
+---
+
 ### **reactTreeWalker**
 
 The default export of the library. The function that performs the magic.
@@ -157,6 +159,8 @@ import reactTreeWalker from 'react-tree-walker'
 **Returns**
 
 A `Promise` that resolves when the tree walking is completed.
+
+---
 
 ### **visitor**
 
