@@ -1,18 +1,16 @@
 /* eslint-disable no-console */
 
-// Inspired by the awesome work done by the Apollo team.
-// See https://github.com/apollostack/react-apollo/blob/master/src/server.ts
-// This version has been adapted to be promise based.
-
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Children } from 'react'
+// Inspired by the awesome work by the Apollo team: 😘
+// https://github.com/apollographql/react-apollo/blob/master/src/getDataFromTree.ts
+//
+// This version has been adapted to be Promise based and support native Preact.
 
 const defaultOptions = {
   componentWillUnmount: false,
 }
 
 // Lifted from https://github.com/sindresorhus/p-reduce
-// Thanks @sindresorhus!
+// Thanks @sindresorhus! 🙏
 const pReduce = (iterable, reducer, initVal) =>
   new Promise((resolve, reject) => {
     const iterator = iterable[Symbol.iterator]()
@@ -38,7 +36,7 @@ const pReduce = (iterable, reducer, initVal) =>
   })
 
 // Lifted from https://github.com/sindresorhus/p-map-series
-// Thanks @sindresorhus!
+// Thanks @sindresorhus! 🙏
 const pMapSeries = (iterable, iterator) => {
   const ret = []
 
@@ -54,146 +52,214 @@ const ensureChild = child =>
     ? ensureChild(child.render())
     : child
 
-// Recurse an React Element tree, running visitor on each element.
-// If visitor returns `false`, don't call the element's render function
-// or recurse into its child elements
+// Preact puts children directly on element, and React via props
+const getChildren = element =>
+  element.props && element.props.children
+    ? element.props.children
+    : element.children ? element.children : undefined
+
+// Preact uses "nodeName", React uses "type"
+const getType = element => element.type || element.nodeName
+
+// Preact uses "attributes", React uses "props"
+const getProps = element => element.props || element.attributes
+
+const isReactElement = element => !!getType(element)
+
+const isClassComponent = Comp =>
+  Comp.prototype &&
+  (Comp.prototype.render ||
+    Comp.prototype.isReactComponent ||
+    Comp.prototype.isPureReactComponent)
+
+const providesChildContext = instance => !!instance.getChildContext
+
+// Recurse a React Element tree, running the provided visitor against each element.
+// If a visitor call returns `false` then we will not recurse into the respective
+// elements children.
 export default function reactTreeWalker(
-  rootElement,
+  tree,
   visitor,
-  rootContext,
+  context,
   options = defaultOptions,
 ) {
   return new Promise((resolve, reject) => {
-    const safeVisitor = visitor.isSafe
-      ? visitor
-      : (...args) => {
-          try {
-            return visitor(...args)
-          } catch (err) {
-            reject(err)
-          }
-          return undefined
-        }
+    const safeVisitor = (...args) => {
+      try {
+        return visitor(...args)
+      } catch (err) {
+        reject(err)
+      }
+      return undefined
+    }
 
-    const recursive = (currentElement, currentContext) =>
-      new Promise(innerResolve => {
-        const visitCurrentElement = (childResolver, context, compInstance) =>
-          Promise.resolve(safeVisitor(currentElement, compInstance, context))
-            .then(result => {
-              if (result !== false) {
-                // A false wasn't returned so we will attempt to visit the children
-                // for the current element.
-                const child = ensureChild(childResolver())
-                const theChildContext =
-                  typeof context === 'function' ? context() : context
-                if (child == null) {
-                  // No children. We've reached the end of this branch.
-                } else if (Children.count(child)) {
-                  // If its a react Children collection we need to breadth-first
-                  // traverse each of them, and pMapSeries allows us to do a
-                  // depth-first traversal that respects Promises. Thanks @sindresorhus!
-                  return pMapSeries(
-                    Children.map(child, cur => cur),
-                    aChild =>
-                      aChild ? recursive(aChild, theChildContext) : undefined,
-                  )
-                    .then(innerResolve, reject)
-                    .catch(reject)
-                } else {
-                  // Otherwise we pass the individual child to the next recursion.
-                  return recursive(child, theChildContext)
-                    .then(innerResolve, reject)
-                    .catch(reject)
-                }
-              }
-              return undefined
-            })
-            .catch(reject)
+    const recursive = (currentElement, currentContext) => {
+      if (Array.isArray(currentElement)) {
+        return Promise.all(
+          currentElement.map(item => recursive(item, currentContext)),
+        )
+      }
 
-        // Is this element a Component?
-        if (typeof currentElement.type === 'function') {
-          const Component = currentElement.type
-          const props = Object.assign(
-            {},
-            Component.defaultProps,
-            currentElement.props,
-          )
+      if (!currentElement) {
+        return Promise.resolve()
+      }
 
-          // Is this a class component? (http://bit.ly/2j9Ifk3)
-          const isReactClassComponent =
-            Component.prototype &&
-            (Component.prototype.isReactComponent ||
-              Component.prototype.isPureReactComponent)
+      if (
+        typeof currentElement === 'string' ||
+        typeof currentElement === 'number'
+      ) {
+        // Just visit these, they are leaves so we don't keep traversing.
+        safeVisitor(currentElement, null, currentContext)
+        return Promise.resolve()
+      }
 
-          if (isReactClassComponent) {
-            // React class component
-
-            const instance = new Component(props, currentContext)
-
-            // In case the user doesn't pass these to super in the constructor
-            instance.props = instance.props || props
-            instance.context = instance.context || currentContext
-
-            // Make the setState synchronous.
-            instance.setState = newState => {
-              if (typeof newState === 'function') {
-                // eslint-disable-next-line no-param-reassign
-                newState = newState(
-                  instance.state,
-                  instance.props,
-                  instance.context,
-                )
-              }
-              instance.state = Object.assign({}, instance.state, newState)
-            }
-
-            visitCurrentElement(
-              () => {
-                if (instance.componentWillMount) {
-                  instance.componentWillMount()
-                }
-                return instance.render()
-              },
-              () =>
-                // Ensure the child context is initialised if it is available.
-                // We will need to pass it down the tree.
-                instance.getChildContext
-                  ? Object.assign(
-                      {},
-                      currentContext,
-                      instance.getChildContext(),
-                    )
-                  : currentContext,
-              instance,
+      if (isReactElement(currentElement)) {
+        return new Promise(innerResolve => {
+          const visitCurrentElement = (
+            render,
+            compInstance,
+            elContext,
+            childContext,
+          ) =>
+            Promise.resolve(
+              safeVisitor(
+                currentElement,
+                compInstance,
+                elContext,
+                childContext,
+              ),
             )
-              .then(() => {
-                if (
-                  options.componentWillUnmount &&
-                  instance.componentWillUnmount
-                ) {
-                  instance.componentWillUnmount()
+              .then(result => {
+                if (result !== false) {
+                  // A false wasn't returned so we will attempt to visit the children
+                  // for the current element.
+                  const tempChildren = render()
+                  const children = ensureChild(tempChildren)
+                  if (children) {
+                    if (Array.isArray(children)) {
+                      // If its a react Children collection we need to breadth-first
+                      // traverse each of them, and pMapSeries allows us to do a
+                      // depth-first traversal that respects Promises. Thanks @sindresorhus!
+                      return pMapSeries(
+                        children,
+                        child =>
+                          child
+                            ? recursive(child, childContext)
+                            : Promise.resolve(),
+                      )
+                        .then(innerResolve, reject)
+                        .catch(reject)
+                    }
+                    // Otherwise we pass the individual child to the next recursion.
+                    return recursive(children, childContext)
+                      .then(innerResolve, reject)
+                      .catch(reject)
+                  }
                 }
+                return undefined
               })
-              .then(innerResolve)
+              .catch(reject)
+
+          if (typeof getType(currentElement) === 'function') {
+            const Component = getType(currentElement)
+            const props = Object.assign(
+              {},
+              Component.defaultProps,
+              getProps(currentElement),
+              // For Preact support so that the props get passed into render
+              // function.
+              {
+                children: getChildren(currentElement),
+              },
+            )
+
+            if (isClassComponent(Component)) {
+              // Class component
+              const instance = new Component(props, currentContext)
+
+              // In case the user doesn't pass these to super in the constructor
+              instance.props = instance.props || props
+              instance.context = instance.context || currentContext
+              // set the instance state to null (not undefined) if not set, to match React behaviour
+              instance.state = instance.state || null
+
+              // Make the setState synchronous.
+              instance.setState = newState => {
+                if (typeof newState === 'function') {
+                  // eslint-disable-next-line no-param-reassign
+                  newState = newState(
+                    instance.state,
+                    instance.props,
+                    instance.context,
+                  )
+                }
+                instance.state = Object.assign({}, instance.state, newState)
+              }
+
+              if (instance.componentWillMount) {
+                instance.componentWillMount()
+              }
+
+              const childContext = providesChildContext(instance)
+                ? Object.assign({}, currentContext, instance.getChildContext())
+                : currentContext
+
+              visitCurrentElement(
+                // Note: preact API also allows props and state to be referenced
+                // as arguments to the render func, so we pass them through
+                // here
+                () => instance.render(instance.props, instance.state),
+                instance,
+                currentContext,
+                childContext,
+              )
+                .then(() => {
+                  if (
+                    options.componentWillUnmount &&
+                    instance.componentWillUnmount
+                  ) {
+                    instance.componentWillUnmount()
+                  }
+                })
+                .then(innerResolve)
+            } else {
+              // Stateless Functional Component
+              visitCurrentElement(
+                () => Component(props, currentContext),
+                null,
+                currentContext,
+                currentContext,
+              ).then(innerResolve)
+            }
           } else {
-            // Stateless Functional Component
+            // A basic element, such as a dom node, string, number etc.
             visitCurrentElement(
-              () => Component(props, currentContext),
+              () => getChildren(currentElement),
+              null,
+              currentContext,
               currentContext,
             ).then(innerResolve)
           }
-        } else {
-          // This must be a basic element, such as a string or dom node.
-          visitCurrentElement(
-            () =>
-              currentElement.props && currentElement.props.children
-                ? currentElement.props.children
-                : undefined,
-            currentContext,
-          ).then(innerResolve)
-        }
-      })
+        })
+      }
 
-    recursive(rootElement, rootContext).then(resolve, reject)
+      // Portals
+      if (
+        currentElement.containerInfo &&
+        currentElement.children &&
+        currentElement.children.props &&
+        Array.isArray(currentElement.children.props.children)
+      ) {
+        return Promise.all(
+          currentElement.children.props.children.map(child =>
+            recursive(child, currentContext),
+          ),
+        )
+      }
+
+      return Promise.resolve()
+    }
+
+    recursive(tree, context).then(resolve, reject)
   })
 }
