@@ -73,9 +73,7 @@
   "jest": {
     "collectCoverageFrom": ["src/**/*.{js,jsx}"],
     "snapshotSerializers": ["<rootDir>/node_modules/enzyme-to-json/serializer"],
-    "testPathIgnorePatterns": [
-      "<rootDir>/(commonjs|coverage|flow-typed|node_modules|tools|umd)/"
-    ]
+    "testPathIgnorePatterns": ["<rootDir>/(coverage|dist|node_modules|tools)/"]
   },
   "eslintConfig": {
     "root": true,
@@ -101,14 +99,7 @@
       "react/sort-comp": 0
     }
   },
-  "eslintIgnore": [
-    "flow-typed/",
-    "tools/flow/",
-    "node_modules/",
-    "commonjs/",
-    "coverage/",
-    "umd/"
-  ],
+  "eslintIgnore": ["node_modules/", "dist/", "coverage/"],
   "prettier": {
     "semi": false,
     "singleQuote": true,
