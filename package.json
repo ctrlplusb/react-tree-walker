@@ -15,8 +15,7 @@
   "keywords": ["react", "react-element", "util", "tree", "visitor"],
   "scripts": {
     "build": "node ./tools/scripts/build.js",
-    "clean":
-      "rimraf ./commonjs && rimraf ./umd && rimraf ./coverage && rimraf ./umd",
+    "clean": "rimraf ./dist && rimraf ./coverage",
     "lint": "eslint src",
     "precommit": "lint-staged && npm run test",
     "prepublish": "npm run build",

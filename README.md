@@ -112,7 +112,7 @@ That being said you do have a bail-out ability allowing you to suspend the trave
 
 ## API
 
-The API is very simple at the moment, only exposing a single function, which you can import as follows
+The API is very simple at the moment, only exposing a single function. We will describe the API of the `reactTreeWalker` function below as well as the API for the `visitor` function that `reactTreeWalker` expects as a parameter.
 
 ---
 
@@ -120,13 +120,13 @@ The API is very simple at the moment, only exposing a single function, which you
 
 The default export of the library. The function that performs the magic.
 
-```
+```javascript
 const reactTreeWalker = require('react-tree-walker')
 ```
 
 _or_
 
-```
+```javascript
 import reactTreeWalker from 'react-tree-walker'
 ```
 
