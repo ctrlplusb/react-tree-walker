@@ -38,7 +38,7 @@ class DataFetcher extends React.Component {
   getData() {
     // Supports promises! You could call an API for example to fetch some
     // data, or do whatever "bootstrapping" you desire.
-    return Promise.resove(this.props.id)
+    return Promise.resolve(this.props.id)
   }
 
   render() {
