@@ -280,6 +280,41 @@ describe('reactTreeWalker', () => {
   })
 
   describe('react', () => {
+    it('supports new context API', () => {
+      const { Provider, Consumer } = React.createContext()
+
+      class SomeInstance extends React.Component {
+        render() {
+          return <div>{this.props.text}</div>
+        }
+      }
+
+      const tree = (
+        <Provider value={{ message: 'This is a provider message' }}>
+          <Consumer>
+            {({ message }) => (
+              <strong>
+                <i>{message}</i>
+              </strong>
+            )}
+          </Consumer>
+          Next
+          <SomeInstance text="Dynamic text" />
+        </Provider>
+      )
+
+      const elements = []
+      reactTreeWalker(tree, element => {
+        elements.push(element)
+      }).then(() => {
+        expect(elements.pop()).toBe('Dynamic text')
+        elements.pop() // Pop the div element
+        elements.pop() // Pop the class instance
+        expect(elements.pop()).toBe('Next')
+        expect(elements.pop()).toBe('This is a provider message')
+      })
+    })
+
     it('supports portals', () => {
       class Foo extends ReactComponent {
         getData() {

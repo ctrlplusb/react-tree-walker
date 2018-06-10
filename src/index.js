@@ -113,6 +113,19 @@ export default function reactTreeWalker(
         return Promise.resolve()
       }
 
+      if (currentElement.type) {
+        if (currentElement.type._context) {
+          // eslint-disable-next-line no-param-reassign
+          currentElement.type._context.currentValue = currentElement.props.value
+        }
+        if (currentElement.type.Provider && currentElement.type.Consumer) {
+          const el = currentElement.props.children(
+            currentElement.type.Provider._context.currentValue,
+          )
+          return recursive(el)
+        }
+      }
+
       if (isReactElement(currentElement)) {
         return new Promise(innerResolve => {
           const visitCurrentElement = (
