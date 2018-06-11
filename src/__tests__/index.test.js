@@ -281,9 +281,7 @@ describe('reactTreeWalker', () => {
 
   describe('react', () => {
     it('supports new context API', () => {
-      const { Provider, Consumer } = React.createContext({
-        handler: io => io,
-      })
+      const { Provider, Consumer } = React.createContext()
 
       class SomeInstance extends React.Component {
         render() {
@@ -292,7 +290,12 @@ describe('reactTreeWalker', () => {
       }
 
       const tree = (
-        <Provider value={{ message: 'This is a provider message' }}>
+        <Provider
+          value={{
+            message: 'This is a provider message',
+            handler: io => io,
+          }}
+        >
           <Consumer>
             {({ message, handler }) => (
               <strong>
