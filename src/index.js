@@ -116,11 +116,14 @@ export default function reactTreeWalker(
       if (currentElement.type) {
         if (currentElement.type._context) {
           // eslint-disable-next-line no-param-reassign
-          currentElement.type._context.currentValue = currentElement.props.value
+          currentElement.type._context._currentValue = {
+            ...currentElement.type._context._currentValue,
+            ...currentElement.props.value,
+          }
         }
         if (currentElement.type.Provider && currentElement.type.Consumer) {
           const el = currentElement.props.children(
-            currentElement.type.Provider._context.currentValue,
+            currentElement.type.Provider._context._currentValue,
           )
           return recursive(el)
         }

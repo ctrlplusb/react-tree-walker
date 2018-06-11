@@ -281,7 +281,9 @@ describe('reactTreeWalker', () => {
 
   describe('react', () => {
     it('supports new context API', () => {
-      const { Provider, Consumer } = React.createContext()
+      const { Provider, Consumer } = React.createContext({
+        handler: io => io,
+      })
 
       class SomeInstance extends React.Component {
         render() {
@@ -292,9 +294,9 @@ describe('reactTreeWalker', () => {
       const tree = (
         <Provider value={{ message: 'This is a provider message' }}>
           <Consumer>
-            {({ message }) => (
+            {({ message, handler }) => (
               <strong>
-                <i>{message}</i>
+                <i>{`${message}: ${handler}`}</i>
               </strong>
             )}
           </Consumer>
@@ -311,7 +313,7 @@ describe('reactTreeWalker', () => {
         elements.pop() // Pop the div element
         elements.pop() // Pop the class instance
         expect(elements.pop()).toBe('Next')
-        expect(elements.pop()).toBe('This is a provider message')
+        expect(elements.pop()).toBe('This is a provider message: io => io')
       })
     })
 
