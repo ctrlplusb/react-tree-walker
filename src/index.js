@@ -93,10 +93,10 @@ export default function reactTreeWalker(
       return undefined
     }
 
-    const recursive = (currentElement, currentContext) => {
+    const recursive = (currentElement, currentContext, cursor) => {
       if (Array.isArray(currentElement)) {
         return Promise.all(
-          currentElement.map(item => recursive(item, currentContext)),
+          currentElement.map(item => recursive(item, currentContext, cursor.concat(currentElement))),
         )
       }
 
@@ -109,7 +109,7 @@ export default function reactTreeWalker(
         typeof currentElement === 'number'
       ) {
         // Just visit these, they are leaves so we don't keep traversing.
-        safeVisitor(currentElement, null, currentContext)
+        safeVisitor(currentElement, null, currentContext, null, cursor)
         return Promise.resolve()
       }
 
@@ -127,6 +127,7 @@ export default function reactTreeWalker(
                 compInstance,
                 elContext,
                 childContext,
+                cursor,
               ),
             )
               .then(result => {
@@ -144,14 +145,14 @@ export default function reactTreeWalker(
                         children,
                         child =>
                           child
-                            ? recursive(child, childContext)
+                            ? recursive(child, childContext, cursor.concat(currentElement))
                             : Promise.resolve(),
                       )
                         .then(innerResolve, reject)
                         .catch(reject)
                     }
                     // Otherwise we pass the individual child to the next recursion.
-                    return recursive(children, childContext)
+                    return recursive(children, childContext, cursor.concat(currentElement))
                       .then(innerResolve, reject)
                       .catch(reject)
                   }
@@ -252,7 +253,7 @@ export default function reactTreeWalker(
       ) {
         return Promise.all(
           currentElement.children.props.children.map(child =>
-            recursive(child, currentContext),
+            recursive(child, currentContext, cursor.concat(currentElement)),
           ),
         )
       }
@@ -260,6 +261,6 @@ export default function reactTreeWalker(
       return Promise.resolve()
     }
 
-    recursive(tree, context).then(resolve, reject)
+    recursive(tree, context, []).then(resolve, reject)
   })
 }
