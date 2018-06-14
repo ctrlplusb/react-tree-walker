@@ -130,7 +130,7 @@ _or_
 import reactTreeWalker from 'react-tree-walker'
 ```
 
-**Paramaters**
+**Parameters**
 
 * **tree** (React/Preact element, _required_)
 
