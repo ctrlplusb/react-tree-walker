@@ -60,7 +60,7 @@
     "pretty-bytes": "4.0.2",
     "prop-types": "^15.6.0",
     "ramda": "^0.25.0",
-    "react": "^16.0.0",
+    "react": "^16.4.0",
     "react-addons-test-utils": "^15.6.2",
     "react-dom": "^16.0.0",
     "readline-sync": "1.4.7",
