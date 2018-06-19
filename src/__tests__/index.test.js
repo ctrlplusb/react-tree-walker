@@ -342,40 +342,41 @@ describe('reactTreeWalker', () => {
     it('supports new context API', () => {
       const { Provider, Consumer } = React.createContext()
 
-      class SomeInstance extends React.Component {
+      class Foo extends React.Component {
         render() {
-          return <div>{this.props.text}</div>
+          return this.props.children
         }
       }
 
       const tree = (
         <Provider
           value={{
-            message: 'This is a provider message',
-            handler: io => io,
+            message: 'Message',
+            identity: x => x,
           }}
         >
           <Consumer>
-            {({ message, handler }) => (
+            {({ message, identity }) => (
               <strong>
-                <i>{`${message}: ${handler}`}</i>
+                <i>{`${message}: ${identity('Hello world')}`}</i>
               </strong>
             )}
           </Consumer>
-          Next
-          <SomeInstance text="Dynamic text" />
+          bar
+          <Foo>foo</Foo>
         </Provider>
       )
 
       const elements = []
-      reactTreeWalker(tree, element => {
+      return reactTreeWalker(tree, element => {
         elements.push(element)
       }).then(() => {
-        expect(elements.pop()).toBe('Dynamic text')
-        elements.pop() // Pop the div element
-        elements.pop() // Pop the class instance
-        expect(elements.pop()).toBe('Next')
-        expect(elements.pop()).toBe('This is a provider message: io => io')
+        expect(elements.pop()).toBe('foo')
+        expect(elements.pop().type).toBe(Foo)
+        expect(elements.pop()).toBe('bar')
+        expect(elements.pop()).toBe('Message: Hello world')
+        expect(elements.pop().type).toBe('i')
+        expect(elements.pop().type).toBe('strong')
       })
     })
 

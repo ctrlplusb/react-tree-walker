@@ -123,7 +123,7 @@ export default function reactTreeWalker(
           const el = currentElement.props.children(
             currentElement.type.Provider._context._currentValue,
           )
-          return recursive(el)
+          return recursive(el, currentContext)
         }
       }
 
