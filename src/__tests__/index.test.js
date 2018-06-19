@@ -48,33 +48,31 @@ describe('reactTreeWalker', () => {
       const createTree = ({ async } = { async: false }) => {
         const Foo = Stateful
         const Bob = Stateless
-        return h('div', {
-          children: [
-            h('h1', null, 'Hello World!'),
-            h(Foo, { data: async ? () => resolveLater(1) : 1 }),
-            h(
-              Foo,
-              {
-                data: async ? () => resolveLater(2) : 2,
-              },
-              h('div', null, [
-                h(
-                  Bob,
-                  null,
-                  h(Foo, {
-                    children: [
-                      h(Foo, { data: async ? () => resolveLater(5) : 5 }),
-                      h(Foo, { data: async ? () => resolveLater(6) : 6 }),
-                    ],
-                    data: async ? () => resolveLater(4) : 4,
-                  }),
-                ),
-                h('div', null, 'hi!'),
-              ]),
-            ),
-            h(Foo, { data: async ? () => resolveLater(3) : 3 }),
-          ],
-        })
+        return h('div', null, [
+          h('h1', null, 'Hello World!'),
+          h(Foo, { data: async ? () => resolveLater(1) : 1 }),
+          h(
+            Foo,
+            {
+              data: async ? () => resolveLater(2) : 2,
+            },
+            h('div', null, [
+              h(
+                Bob,
+                null,
+                h(Foo, {
+                  children: [
+                    h(Foo, { data: async ? () => resolveLater(5) : 5 }),
+                    h(Foo, { data: async ? () => resolveLater(6) : 6 }),
+                  ],
+                  data: async ? () => resolveLater(4) : 4,
+                }),
+              ),
+              h('div', null, 'hi!'),
+            ]),
+          ),
+          h(Foo, { data: async ? () => resolveLater(3) : 3 }),
+        ])
       }
 
       it('simple sync visitor', () => {
@@ -274,6 +272,67 @@ describe('reactTreeWalker', () => {
               expect(actual).toEqual([1, 2, 4])
             },
           )
+        })
+      })
+
+      it('complex context configuration', () => {
+        class Wrapper extends Component {
+          getChildContext() {
+            this.id = 0
+
+            return {
+              foo: {
+                getNextId: () => {
+                  this.id += 1
+                  return this.id
+                },
+              },
+            }
+          }
+
+          render() {
+            return this.props.children
+          }
+        }
+
+        const ids = []
+        class Baz extends Component {
+          getData() {
+            if (!this.context.foo) {
+              return undefined
+            }
+            return new Promise(resolve => setTimeout(resolve, 1000)).then(
+              () => {
+                this.resolved = true
+                ids.push(this.context.foo.getNextId())
+              },
+            )
+          }
+
+          render() {
+            return this.resolved ? this.props.children : null
+          }
+        }
+
+        const visitor = (element, instance) => {
+          if (instance && typeof instance.getData === 'function') {
+            return instance.getData()
+          }
+          return undefined
+        }
+
+        const app = h(
+          Wrapper,
+          null,
+          h(
+            'div',
+            null,
+            h(Baz, null, h('div', null, [h(Baz), h(Baz), h(Baz)])),
+          ),
+        )
+
+        return reactTreeWalker(app, visitor).then(() => {
+          expect(ids).toEqual([1, 2, 3, 4])
         })
       })
     })
