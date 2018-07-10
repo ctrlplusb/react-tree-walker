@@ -157,6 +157,60 @@ describe('reactTreeWalker', () => {
         )
       })
 
+      it('UNSAFE_componentWillMount', () => {
+        let actual = {}
+
+        class Foo extends Component {
+          constructor(props) {
+            super(props)
+            this.state = { foo: 'foo' }
+          }
+
+          UNSAFE_componentWillMount() {
+            this.setState({ foo: 'bar' })
+          }
+
+          render() {
+            actual = this.state
+            return h('div', null, this.state.foo)
+          }
+        }
+
+        return reactTreeWalker(h(Foo, { value: 'foo' }), () => true).then(
+          () => {
+            const expected = { foo: 'bar' }
+            expect(actual).toMatchObject(expected)
+          },
+        )
+      })
+
+      it('getDerivedStateFromProps', () => {
+        let actual = {}
+
+        class Foo extends Component {
+          constructor(props) {
+            super(props)
+            this.state = { foo: 'foo' }
+          }
+
+          static getDerivedStateFromProps(props, state) {
+            return { foo: `${state.foo}bar` }
+          }
+
+          render() {
+            actual = this.state
+            return h('div', null, this.state.foo)
+          }
+        }
+
+        return reactTreeWalker(h(Foo, { value: 'foo' }), () => true).then(
+          () => {
+            const expected = { foo: 'foobar' }
+            expect(actual).toMatchObject(expected)
+          },
+        )
+      })
+
       it('calls componentWillUnmount', () => {
         let called = true
 

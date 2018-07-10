@@ -56,7 +56,9 @@ const ensureChild = child =>
 const getChildren = element =>
   element.props && element.props.children
     ? element.props.children
-    : element.children ? element.children : undefined
+    : element.children
+      ? element.children
+      : undefined
 
 // Preact uses "nodeName", React uses "type"
 const getType = element => element.type || element.nodeName
@@ -192,7 +194,9 @@ export default function reactTreeWalker(
               const instance = new Component(props, currentContext)
 
               // In case the user doesn't pass these to super in the constructor
-              instance.props = instance.props || props
+              Object.defineProperty(instance, 'props', {
+                value: instance.props || props,
+              })
               instance.context = instance.context || currentContext
               // set the instance state to null (not undefined) if not set, to match React behaviour
               instance.state = instance.state || null
@@ -210,7 +214,17 @@ export default function reactTreeWalker(
                 instance.state = Object.assign({}, instance.state, newState)
               }
 
-              if (instance.componentWillMount) {
+              if (Component.getDerivedStateFromProps) {
+                const result = Component.getDerivedStateFromProps(
+                  instance.props,
+                  instance.state,
+                )
+                if (result !== null) {
+                  instance.state = Object.assign({}, instance.state, result)
+                }
+              } else if (instance.UNSAFE_componentWillMount) {
+                instance.UNSAFE_componentWillMount()
+              } else if (instance.componentWillMount) {
                 instance.componentWillMount()
               }
 
