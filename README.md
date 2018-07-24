@@ -2,9 +2,9 @@
 
 This library does not operate in an idiomatic manner against React. It makes some assumptions about the internals of React and makes calls against Components directly. This is a risk as it likely to break with future releases of React, i.e. the upcoming Suspense release.
 
-Personally, I've found this library helpful in providing me with a solution my server side rendering data fetching needs. That being said I very much look forward to being able to move over to Suspense as soon as it is stable and avoid having to use hacks/workarounds such as this library.
+Personally, I've found this library helpful in providing me with a solution for my server side rendering data fetching needs. That being said I very much look forward to being able to move over to Suspense as soon as it is stable and avoid having to use hacks/workarounds such as this library.
 
-Please make your considerations carefully before adopting this library. If you are happy to take on the risk I would recommend you write an abstraction over it that will allow you to easily remove/replace it from your codebase with Suspense or another more idiomatic solution.
+Please consider carefully before adopting this library. If you are happy to take on the risk I would recommend you write an abstraction over it that will allow you to easily remove/replace it from your codebase with Suspense or another more idiomatic solution.
 
 ----
 
