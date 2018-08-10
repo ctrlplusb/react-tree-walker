@@ -467,5 +467,26 @@ describe('reactTreeWalker', () => {
         expect(actual).toEqual(expected)
       })
     })
+
+    it('supports forwardRef', () => {
+      class Foo extends ReactComponent {
+        render() {
+          return this.props.children
+        }
+      }
+
+      const Bar = React.forwardRef((props, ref) => <Foo ref={ref} {...props} />)
+
+      const tree = <Bar>foo</Bar>
+
+      const elements = []
+      return reactTreeWalker(tree, element => {
+        elements.push(element)
+      }).then(() => {
+        expect(elements.pop()).toBe('foo')
+        expect(elements.pop().type).toBe(Foo)
+        expect(elements.pop().type).toBe(Bar)
+      })
+    })
   })
 })
