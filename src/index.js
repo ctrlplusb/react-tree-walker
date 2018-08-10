@@ -74,6 +74,11 @@ const isClassComponent = Comp =>
     Comp.prototype.isReactComponent ||
     Comp.prototype.isPureReactComponent)
 
+const isForwardRef = Comp =>
+  Comp.type &&
+  Comp.type.$$typeof === Symbol.for('react.forward_ref') &&
+  typeof Comp.type.render === 'function'
+
 const providesChildContext = instance => !!instance.getChildContext
 
 // Recurse a React Element tree, running the provided visitor against each element.
@@ -176,7 +181,10 @@ export default function reactTreeWalker(
               })
               .catch(reject)
 
-          if (typeof getType(currentElement) === 'function') {
+          if (
+            typeof getType(currentElement) === 'function' ||
+            isForwardRef(currentElement)
+          ) {
             const Component = getType(currentElement)
             const props = Object.assign(
               {},
@@ -188,8 +196,14 @@ export default function reactTreeWalker(
                 children: getChildren(currentElement),
               },
             )
-
-            if (isClassComponent(Component)) {
+            if (isForwardRef(currentElement)) {
+              visitCurrentElement(
+                () => currentElement.type.render(props),
+                null,
+                currentContext,
+                currentContext,
+              ).then(innerResolve)
+            } else if (isClassComponent(Component)) {
               // Class component
               const instance = new Component(props, currentContext)
 
