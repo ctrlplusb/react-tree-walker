@@ -236,6 +236,7 @@ describe('reactTreeWalker', () => {
           getChildContext() {
             return { foo: 'val' }
           }
+
           render() {
             return h('div', null, this.props.children)
           }
