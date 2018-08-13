@@ -9,6 +9,8 @@ const defaultOptions = {
   componentWillUnmount: false,
 }
 
+const forwardRefSymbol = Symbol.for('react.forward_ref')
+
 // Lifted from https://github.com/sindresorhus/p-reduce
 // Thanks @sindresorhus! 🙏
 const pReduce = (iterable, reducer, initVal) =>
@@ -75,9 +77,7 @@ const isClassComponent = Comp =>
     Comp.prototype.isPureReactComponent)
 
 const isForwardRef = Comp =>
-  Comp.type &&
-  Comp.type.$$typeof === Symbol.for('react.forward_ref') &&
-  typeof Comp.type.render === 'function'
+  Comp.type && Comp.type.$$typeof === forwardRefSymbol
 
 const providesChildContext = instance => !!instance.getChildContext
 

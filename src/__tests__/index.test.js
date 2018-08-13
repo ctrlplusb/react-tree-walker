@@ -476,8 +476,9 @@ describe('reactTreeWalker', () => {
       }
 
       const Bar = React.forwardRef((props, ref) => <Foo ref={ref} {...props} />)
+      const ref = React.createRef()
 
-      const tree = <Bar>foo</Bar>
+      const tree = <Bar ref={ref}>foo</Bar>
 
       const elements = []
       return reactTreeWalker(tree, element => {
