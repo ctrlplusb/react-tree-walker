@@ -121,16 +121,24 @@ export default function reactTreeWalker(
       }
 
       if (currentElement.type) {
-        if (currentElement.type._context) {
-          // eslint-disable-next-line no-param-reassign
-          currentElement.type._context._currentValue =
-            currentElement.props.value
-        }
-        if (currentElement.type.Provider && currentElement.type.Consumer) {
-          const el = currentElement.props.children(
-            currentElement.type.Provider._context._currentValue,
-          )
-          return recursive(el, currentContext)
+        const _context =
+          currentElement.type._context ||
+          (currentElement.type.Provider &&
+            currentElement.type.Provider._context)
+
+        if (_context) {
+          if ('value' in currentElement.props) {
+            // <Provider>
+            // eslint-disable-next-line no-param-reassign
+            currentElement.type._context._currentValue =
+              currentElement.props.value
+          }
+
+          if (typeof currentElement.props.children === 'function') {
+            // <Consumer>
+            const el = currentElement.props.children(_context._currentValue)
+            return recursive(el, currentContext)
+          }
         }
       }
 
