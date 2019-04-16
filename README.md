@@ -1,3 +1,9 @@
+### Update
+
+I haven't been focusing on this library as I tend to reach for Next.js for my SSR needs. If anyone is interested in maintaining the library further I am happy to add you as a collaborator to the project. 
+
+As an alternative I can highly recommend [react-ssr-prepass](https://github.com/FormidableLabs/react-ssr-prepass), developed by @kitten of Formidable Labs, which provides the same functionality with built in support for suspense.
+
 ### Disclaimer
 
 This library does not operate in an idiomatic manner against React. It makes some assumptions about the internals of React and makes calls against Components directly. This is a risk as it likely to break with future releases of React, i.e. the upcoming Suspense release.
