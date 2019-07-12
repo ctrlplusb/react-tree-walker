@@ -224,7 +224,7 @@ export default function reactTreeWalker(
               instance.state = instance.state || null
 
               // Make the setState synchronous.
-              instance.setState = newState => {
+              instance.setState = (newState, cb) => {
                 if (typeof newState === 'function') {
                   // eslint-disable-next-line no-param-reassign
                   newState = newState(
@@ -234,6 +234,9 @@ export default function reactTreeWalker(
                   )
                 }
                 instance.state = Object.assign({}, instance.state, newState)
+                if (typeof cb === 'function'){
+                  cb();
+                }
               }
 
               if (Component.getDerivedStateFromProps) {
